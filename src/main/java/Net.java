@@ -12,7 +12,7 @@ public class Net {
         while (true) {
             DatagramPacket inPacket = new DatagramPacket(buf, 0, buf.length);
             dSocket.receive(inPacket);
-            Message inMessage = new Message(inPacket);
+            Message inMessage = new Message(inPacket.getData(), inPacket.getPort(), inPacket.getAddress());
             int inPort = inMessage.getPort();
             InetAddress inAddress = inMessage.getAddress();
 

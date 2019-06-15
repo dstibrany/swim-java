@@ -40,8 +40,10 @@ public class Message {
         this.messageType = messageType;
     }
 
-    public Message(DatagramPacket packet) throws IOException {
-        deserialize(packet);
+    public Message(byte[] packetData, int port, InetAddress address) throws IOException {
+        this.port = port;
+        this.address = address;
+        deserialize(packetData);
     }
 
     public MessageType getMessageType() {
@@ -63,12 +65,10 @@ public class Message {
         return baos.toByteArray();
     }
 
-    public void deserialize(DatagramPacket packet) throws IOException  {
-        DataInputStream packetData = new DataInputStream(new ByteArrayInputStream(packet.getData()));
-        messageType = MessageType.getType(packetData.readInt());
-        packetData.close();
-        port = packet.getPort();
-        address = packet.getAddress();
+    public void deserialize(byte[] packetData) throws IOException  {
+        DataInputStream dis = new DataInputStream(new ByteArrayInputStream(packetData));
+        messageType = MessageType.getType(dis.readInt());
+        dis.close();
     }
 
 }
