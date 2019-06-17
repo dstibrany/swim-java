@@ -1,48 +1,24 @@
 import java.io.*;
-import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.util.HashMap;
 import java.util.Map;
 
 public class Message {
-    public enum MessageType {
-        PING(1),
-        PING_REQ(2),
-        ACK(3);
-
-        private final int value;
-        private static final Map<Integer, MessageType> lookup = new HashMap<>();
-
-        static {
-            for (MessageType type : MessageType.values()) {
-                lookup.put(type.getValue(), type);
-            }
-        }
-
-        MessageType(int value) {
-            this.value = value;
-        }
-
-        public static MessageType getType(int value) {
-            return lookup.get(value);
-        }
-
-        public int getValue() {
-            return value;
-        }
-    }
-
     private MessageType messageType;
-    private int port;
-    private InetAddress address;
+    private int srcPort;
+    private InetAddress srcAddress;
+    private int dstPort;
+    private InetAddress dstAddress;
 
-    public Message(MessageType messageType) {
+    public Message(MessageType messageType, int dstPort, InetAddress dstAddress) {
         this.messageType = messageType;
+        this.dstPort = dstPort;
+        this.dstAddress = dstAddress;
     }
 
-    public Message(byte[] packetData, int port, InetAddress address) throws IOException {
-        this.port = port;
-        this.address = address;
+    public Message(byte[] packetData, int srcPort, InetAddress srcAddress) throws IOException {
+        this.srcPort = srcPort;
+        this.srcAddress = srcAddress;
         deserialize(packetData);
     }
 
@@ -50,12 +26,20 @@ public class Message {
         return messageType;
     }
 
-    public int getPort() {
-        return port;
+    public int getSrcPort() {
+        return srcPort;
     }
 
-    public InetAddress getAddress() {
-        return address;
+    public InetAddress getSrcAddress() {
+        return srcAddress;
+    }
+
+    public int getDstPort() {
+        return dstPort;
+    }
+
+    public InetAddress getDstAddress() {
+        return dstAddress;
     }
 
     public byte[] serialize() throws IOException {
