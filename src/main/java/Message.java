@@ -16,7 +16,7 @@ public class Message {
         this.dstAddress = dstAddress;
     }
 
-    public Message(byte[] packetData, int srcPort, InetAddress srcAddress) throws IOException {
+    public Message(byte[] packetData, int srcPort, InetAddress srcAddress) {
         this.srcPort = srcPort;
         this.srcAddress = srcAddress;
         deserialize(packetData);
@@ -42,17 +42,27 @@ public class Message {
         return dstAddress;
     }
 
-    public byte[] serialize() throws IOException {
+    public byte[] serialize()  {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         DataOutputStream dos = new DataOutputStream(baos);
-        dos.writeInt(messageType.getValue());
+        try {
+            dos.writeInt(messageType.getValue());
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.exit(1);
+        }
         return baos.toByteArray();
     }
 
-    public void deserialize(byte[] packetData) throws IOException  {
+    public void deserialize(byte[] packetData) {
         DataInputStream dis = new DataInputStream(new ByteArrayInputStream(packetData));
-        messageType = MessageType.getType(dis.readInt());
-        dis.close();
+        try {
+            messageType = MessageType.getType(dis.readInt());
+            dis.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.exit(1);
+        }
     }
 
 }

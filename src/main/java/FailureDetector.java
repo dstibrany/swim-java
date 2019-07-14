@@ -1,20 +1,32 @@
+import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.*;
+
 public class FailureDetector {
-    private int protocolPeriod;
-    private int subgroupSize;
-    private MembershipList membershipList;
-
-    public void start() {
-        // choose random member from List
-        // send member PING
-        // wait for ACK
-        // if no ACK before timeout, select subgroupSize members and send PING_REQ to each
-        // at end of protocolPeriod, check for any ACKS
-        // if no ACKS, delete member from local list
-        // hand update to dissemination component.
+    private int protocolPeriod = 5;
+    private int subgroupSize = 2;
+    private List<Member> membershipList;
+    private Transport t;
+    private Messager messager = new Messager();
 
 
-        // LISTENER
-        // IF PING -> send back ACK
-        // IF PING-REQ -> PING Target -> If ACK, send back ACK to source
+    FailureDetector(List<Member> membershipList, Transport t) {
+        this.membershipList = membershipList;
+        this.t = t;
+    }
+
+    public void start() throws InterruptedException, ExecutionException {
+        Member target = membershipList.get(0);
+        try {
+            Message ack = messager.ping(target);
+        } catch (TimeoutException e) {
+            List<Member> targets = Arrays.asList(membershipList.get(0));
+            try {
+                List<Message> messages = messager.indirectProbe(targets);
+            } catch (TimeoutException e2) {
+
+            }
+        }
+
     }
 }

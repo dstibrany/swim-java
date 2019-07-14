@@ -1,6 +1,6 @@
-import java.io.IOException;
 
 public interface Transport {
-    Message receive() throws IOException;
-    void send(Message message) throws IOException;
+    Message receive();
+    void send(Message message, Member member);
+    void close();
 }
