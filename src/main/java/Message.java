@@ -4,17 +4,17 @@ import java.net.InetAddress;
 public class Message {
     private MessageType messageType;
     private Member member;
-    private Member iProbeMember;
+    private Member indirectProbeMember;
 
     public Message(MessageType messageType, Member member) {
         this.messageType = messageType;
         this.member = member;
     }
 
-    public Message(MessageType messageType, Member member, Member iProbeMember) {
+    public Message(MessageType messageType, Member member, Member indirectProbeMember) {
         this.messageType = messageType;
         this.member = member;
-        this.iProbeMember = iProbeMember;
+        this.indirectProbeMember = indirectProbeMember;
     }
 
     public static Message deserialize(byte[] data, Member member) {
@@ -41,15 +41,16 @@ public class Message {
     }
 
     public MessageType getMessageType() {
-        return messageType;
+        if (messageType == null) return MessageType.UNKNOWN;
+        else return messageType;
     }
 
     public Member getMember() {
         return member;
     }
 
-    public Member getiProbeMember() {
-        return iProbeMember;
+    public Member getIndirectProbeMember() {
+        return indirectProbeMember;
     }
 
     public byte[] serialize() {

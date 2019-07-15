@@ -4,12 +4,22 @@ import java.util.concurrent.*;
 
 public class Messager {
     private ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
-    private Transport t;
+    private TransportFactory tf;
+    private Transport listener;
+
+    Messager(TransportFactory tf) {
+        this.tf = tf;
+        listener = tf.createListener(5555);
+    }
+
+    Message receive() {
+        return listener.receive();
+    }
 
     Message ping(Member member) throws TimeoutException, InterruptedException, ExecutionException {
         Message ping = new Message(MessageType.PING, member);
         Future<Message> f = executor.submit(() -> {
-            Transport t = new NetTransport();
+            Transport t = tf.create();
             t.send(ping);
             Message ack = t.receive();
             t.close();
@@ -21,7 +31,7 @@ public class Messager {
     void ack(Member member) {
         Message ack = new Message(MessageType.ACK, member);
         executor.submit(() -> {
-            Transport t = new NetTransport();
+            Transport t = tf.create();
             t.send(ack);
             t.close();
         });
@@ -31,7 +41,7 @@ public class Messager {
         List<Callable<Message>> messages = new ArrayList<>();
         for (Member member : members) {
             messages.add(() -> {
-                Transport t = new NetTransport();
+                Transport t = tf.create();
                 Message ping = new Message(MessageType.PING, member);
                 t.send(ping);
                 Message ack = t.receive();
@@ -50,7 +60,7 @@ public class Messager {
     void indirectProbe(Member from, Member to) {
         Message ping = new Message(MessageType.PING, to);
         executor.submit(() -> {
-            Transport t = new NetTransport();
+            Transport t = tf.create();
             t.send(ping);
             Message ack = t.receive();
             t.send(new Message(MessageType.ACK, from));

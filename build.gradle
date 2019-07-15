@@ -12,7 +12,7 @@ repositories {
 }
 
 application {
-    mainClassName = 'Controller'
+    mainClassName = 'SwimJava'
 }
 
 test {

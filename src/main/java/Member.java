@@ -16,4 +16,9 @@ public class Member {
     public InetAddress getAddress() {
         return address;
     }
+
+    @Override
+    public String toString() {
+        return address.getHostAddress() + ":" + port;
+    }
 }

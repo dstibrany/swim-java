@@ -1,37 +1,19 @@
-import java.io.IOException;
-import java.net.SocketException;
+import java.net.InetAddress;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 public class SwimJava {
 
-    public static void main(String[] args) throws IOException {
-        while (true) {
+    public static void main(String[] args) throws InterruptedException, ExecutionException {
+        Messager m = new Messager(new NetTransportFactory());
+        List<Member> memberlist = new ArrayList<>();
+        memberlist.add(new Member(5555, InetAddress.getLoopbackAddress()));
 
-            /*
-            Member m = membershiplist.getRandomMember();
-            sendPing(m);
-            receiveAck();
-            if (timeout) {
-                indirectProbe();
-            } else {
-                sleep for rest of period
-            }
-
-            indirectProbe():
-            List<Member> members = membershipList.getKRandomMembers();
-            for each (Member m : members) {
-                sendPingReq(m);
-                receiveAck();
-             }
-
-             if (all timeout) {
-                remove member
-             } else {
-               sleep for rest
-             }
-
-
-             */
-        }
+        FailureDetector fd = new FailureDetector(memberlist, m);
+        fd.start();
+//        Listener listener = new Listener(m);
+//        listener.start();
     }
 
 }

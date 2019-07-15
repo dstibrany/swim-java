@@ -1,10 +1,13 @@
+import org.omg.CORBA.UNKNOWN;
+
 import java.util.HashMap;
 import java.util.Map;
 
 public enum MessageType {
     PING(1),
     PING_REQ(2),
-    ACK(3);
+    ACK(3),
+    UNKNOWN(4);
 
     private static final Map<Integer, MessageType> lookup = new HashMap<>();
 
