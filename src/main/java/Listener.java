@@ -3,27 +3,27 @@ import org.apache.logging.log4j.Logger;
 
 public class Listener {
     private final Logger logger;
-    private Messager messager;
+    private Dispatcher dispatcher;
 
-    Listener(Messager messager) {
+    Listener(Dispatcher dispatcher) {
         logger = LogManager.getFormatterLogger();
-        this.messager = messager;
+        this.dispatcher = dispatcher;
     }
 
     public void start() {
         while (true) {
-            Message message = messager.receive();
+            Message message = dispatcher.receive();
             switch (message.getMessageType()) {
                 case PING:
                     logger.info("Received PING from %s", message.getMember().toString());
-                    messager.ack(message.getMember());
+                    dispatcher.ack(message.getMember());
                     logger.info("Sent ACK to %s", message.getMember().toString());
                     break;
                 case PING_REQ:
                     logger.info("Received PING-REQ from %s for %s",
                             message.getMember().toString(),
                             message.getIndirectProbeMember().toString());
-                    messager.indirectProbe(message.getMember(), message.getIndirectProbeMember());
+                    dispatcher.indirectProbe(message.getMember(), message.getIndirectProbeMember());
                     logger.info("Sent ACK to %s", message.getMember().toString());
                     break;
                 case ACK:

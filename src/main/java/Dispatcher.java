@@ -2,12 +2,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.*;
 
-public class Messager {
+public class Dispatcher {
     private ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
     private TransportFactory tf;
     private Transport listener;
 
-    Messager(TransportFactory tf) {
+    Dispatcher(TransportFactory tf) {
         this.tf = tf;
         listener = tf.createListener(5555);
     }

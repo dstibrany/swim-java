@@ -6,7 +6,7 @@ import java.util.concurrent.ExecutionException;
 public class SwimJava {
 
     public static void main(String[] args) throws InterruptedException, ExecutionException {
-        Messager m = new Messager(new NetTransportFactory());
+        Dispatcher m = new Dispatcher(new NetTransportFactory());
         List<Member> memberlist = new ArrayList<>();
         memberlist.add(new Member(5555, InetAddress.getLoopbackAddress()));
 
