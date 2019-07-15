@@ -16,17 +16,19 @@ public class FailureDetector {
     }
 
     public void start() throws InterruptedException, ExecutionException {
-        Member target = membershipList.get(0);
-        try {
-            Message ack = messager.ping(target);
-        } catch (TimeoutException e) {
-            List<Member> targets = Arrays.asList(membershipList.get(0));
+        while (true) {
+            Member target = membershipList.get(0);
             try {
-                List<Message> messages = messager.indirectProbe(targets);
-            } catch (TimeoutException e2) {
-
+                Message ack = messager.ping(target);
+            } catch (TimeoutException e) {
+                List<Member> targets = Arrays.asList(membershipList.get(0));
+                try {
+                    List<Message> messages = messager.pingReq(targets);
+                } catch (TimeoutException e2) {
+                    membershipList.remove(target);
+                }
             }
+            Thread.sleep(1000);
         }
-
     }
 }

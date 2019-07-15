@@ -5,64 +5,63 @@ import java.util.Map;
 
 public class Message {
     private MessageType messageType;
-    private int srcPort;
-    private InetAddress srcAddress;
-    private int dstPort;
-    private InetAddress dstAddress;
+    private Member member;
+    private Member iProbeMember;
 
-    public Message(MessageType messageType, int dstPort, InetAddress dstAddress) {
-        this.messageType = messageType;
-        this.dstPort = dstPort;
-        this.dstAddress = dstAddress;
+    public static Message deserialize(byte[] data, Member member) {
+        MessageType messageType;
+        Message message;
+
+        try (DataInputStream dis = new DataInputStream(new ByteArrayInputStream(data))) {
+            messageType = MessageType.getType(dis.readInt());
+            if (messageType == MessageType.PING_REQ) {
+                byte[] address = new byte[4];
+                int bytesRead = dis.read(address);
+                int port = dis.readInt();
+                message = new Message(messageType, member, new Member(port, InetAddress.getByAddress(address)));
+            } else {
+               message = new Message(messageType, member);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.exit(1);
+            return null;
+        }
+
+        return message;
     }
 
-    public Message(byte[] packetData, int srcPort, InetAddress srcAddress) {
-        this.srcPort = srcPort;
-        this.srcAddress = srcAddress;
-        deserialize(packetData);
+    public Message(MessageType messageType, Member member) {
+        this.messageType = messageType;
+        this.member = member;
+    }
+
+    public Message(MessageType messageType, Member member, Member iProbeMember) {
+        this.messageType = messageType;
+        this.member = member;
+        this.iProbeMember = iProbeMember;
     }
 
     public MessageType getMessageType() {
         return messageType;
     }
 
-    public int getSrcPort() {
-        return srcPort;
+    public Member getMember() {
+        return member;
     }
 
-    public InetAddress getSrcAddress() {
-        return srcAddress;
-    }
-
-    public int getDstPort() {
-        return dstPort;
-    }
-
-    public InetAddress getDstAddress() {
-        return dstAddress;
+    public Member getiProbeMember() {
+        return iProbeMember;
     }
 
     public byte[] serialize()  {
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        DataOutputStream dos = new DataOutputStream(baos);
-        try {
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream(); DataOutputStream dos = new DataOutputStream(baos)) {
             dos.writeInt(messageType.getValue());
+            return baos.toByteArray();
         } catch (IOException e) {
             e.printStackTrace();
             System.exit(1);
-        }
-        return baos.toByteArray();
-    }
-
-    public void deserialize(byte[] packetData) {
-        DataInputStream dis = new DataInputStream(new ByteArrayInputStream(packetData));
-        try {
-            messageType = MessageType.getType(dis.readInt());
-            dis.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-            System.exit(1);
+            return null;
         }
     }
-
 }

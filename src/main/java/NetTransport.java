@@ -1,16 +1,10 @@
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
-import java.net.InetAddress;
 import java.net.SocketException;
-import java.util.concurrent.Executor;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 
 public class NetTransport implements Transport {
     private DatagramSocket socket;
-    private ExecutorService executor = Executors.newSingleThreadExecutor();
 
     public NetTransport(int port) {
         try {
@@ -39,19 +33,20 @@ public class NetTransport implements Transport {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return new Message(packet.getData(), packet.getPort(), packet.getAddress());
+        Member member = new Member(packet.getPort(), packet.getAddress());
+        return Message.deserialize(packet.getData(), member);
     }
 
     @Override
-    public void send(Message message, Member member)  {
+    public void send(Message message)  {
         byte[] messageData = message.serialize();
-        DatagramPacket packet = new DatagramPacket(messageData, 0, messageData.length, message.getDstAddress(), message.getDstPort());
+        Member member = message.getMember();
+        DatagramPacket packet = new DatagramPacket(messageData, 0, messageData.length, member.getAddress(), member.getPort());
         try {
             socket.send(packet);
         } catch (IOException e) {
             e.printStackTrace();
         }
-
     }
 
     public void close() {

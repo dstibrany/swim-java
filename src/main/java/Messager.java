@@ -1,4 +1,4 @@
-import java.net.SocketException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.*;
 
@@ -6,15 +6,11 @@ public class Messager {
     private ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
     private Transport t;
 
-    Messager() {
-
-    }
-
-    Message ping(Member m) throws TimeoutException, InterruptedException, ExecutionException  {
-        Message ping = new Message(MessageType.PING, m.getPort(), m.getAddress());
+    Message ping(Member member) throws TimeoutException, InterruptedException, ExecutionException  {
+        Message ping = new Message(MessageType.PING, member);
         Future<Message> f = executor.submit(() -> {
             Transport t = new NetTransport();
-            t.send(ping, m);
+            t.send(ping);
             Message ack = t.receive();
             t.close();
             return ack;
@@ -22,22 +18,44 @@ public class Messager {
         return f.get(1000, TimeUnit.MILLISECONDS);
     }
 
-    void ack (Member m) {
-        Message ack = new Message(MessageType.ACK, m.getPort(), m.getAddress());
+    void ack(Member member) {
+        Message ack = new Message(MessageType.ACK, member);
         executor.submit(() -> {
             Transport t = new NetTransport();
-            t.send(ack, m);
+            t.send(ack);
             t.close();
         });
     }
 
-    List<Message> indirectProbe(List<Member> members) throws TimeoutException {
-//       executor.invokeAny();
-        return null;
+    List<Message> pingReq(List<Member> members) throws TimeoutException, InterruptedException, ExecutionException {
+        List<Callable<Message>> messages = new ArrayList<>();
+        for (Member member : members) {
+            messages.add(() -> {
+                Transport t = new NetTransport();
+                Message ping = new Message(MessageType.PING, member);
+                t.send(ping);
+                Message ack = t.receive();
+                t.close();
+                return ack;
+            });
+        }
+        List<Future<Message>> acks = executor.invokeAll(messages, 1000, TimeUnit.MILLISECONDS);
+        List<Message> ackMessages = new ArrayList<>();
+        for (Future<Message> ack : acks) {
+            if (ack.isDone()) ackMessages.add(ack.get());
+        }
+        return ackMessages;
     }
 
-    Message pingReq() {
-        return null;
+    void indirectProbe(Member from, Member to) {
+        Message ping = new Message(MessageType.PING, to);
+        executor.submit(() -> {
+            Transport t = new NetTransport();
+            t.send(ping);
+            Message ack = t.receive();
+            t.send(new Message(MessageType.ACK, from));
+            t.close();
+        });
     }
 
 }

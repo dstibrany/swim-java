@@ -1,6 +1,6 @@
 
 public interface Transport {
     Message receive();
-    void send(Message message, Member member);
+    void send(Message message);
     void close();
 }

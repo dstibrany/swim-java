@@ -4,7 +4,7 @@ public class Member {
     private int port;
     private InetAddress address;
 
-    Member(InetAddress address, int port) {
+    Member(int port, InetAddress address) {
         this.address = address;
         this.port = port;
     }
