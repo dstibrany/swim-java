@@ -6,7 +6,6 @@ public enum MessageType {
     PING_REQ(2),
     ACK(3);
 
-    private final int value;
     private static final Map<Integer, MessageType> lookup = new HashMap<>();
 
     static {
@@ -14,6 +13,8 @@ public enum MessageType {
             lookup.put(type.getValue(), type);
         }
     }
+
+    private final int value;
 
     MessageType(int value) {
         this.value = value;

@@ -14,10 +14,10 @@ public class Listener {
     public void start() {
         while (true) {
             Message message = transport.receive();
-             switch (message.getMessageType()) {
-                 case PING:
-                     messager.ack(message.getMember());
-                     break;
+            switch (message.getMessageType()) {
+                case PING:
+                    messager.ack(message.getMember());
+                    break;
                 case PING_REQ:
                     messager.indirectProbe(message.getMember(), message.getiProbeMember());
                     break;

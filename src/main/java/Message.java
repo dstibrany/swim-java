@@ -1,12 +1,21 @@
 import java.io.*;
 import java.net.InetAddress;
-import java.util.HashMap;
-import java.util.Map;
 
 public class Message {
     private MessageType messageType;
     private Member member;
     private Member iProbeMember;
+
+    public Message(MessageType messageType, Member member) {
+        this.messageType = messageType;
+        this.member = member;
+    }
+
+    public Message(MessageType messageType, Member member, Member iProbeMember) {
+        this.messageType = messageType;
+        this.member = member;
+        this.iProbeMember = iProbeMember;
+    }
 
     public static Message deserialize(byte[] data, Member member) {
         MessageType messageType;
@@ -20,7 +29,7 @@ public class Message {
                 int port = dis.readInt();
                 message = new Message(messageType, member, new Member(port, InetAddress.getByAddress(address)));
             } else {
-               message = new Message(messageType, member);
+                message = new Message(messageType, member);
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -29,17 +38,6 @@ public class Message {
         }
 
         return message;
-    }
-
-    public Message(MessageType messageType, Member member) {
-        this.messageType = messageType;
-        this.member = member;
-    }
-
-    public Message(MessageType messageType, Member member, Member iProbeMember) {
-        this.messageType = messageType;
-        this.member = member;
-        this.iProbeMember = iProbeMember;
     }
 
     public MessageType getMessageType() {
@@ -54,7 +52,7 @@ public class Message {
         return iProbeMember;
     }
 
-    public byte[] serialize()  {
+    public byte[] serialize() {
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream(); DataOutputStream dos = new DataOutputStream(baos)) {
             dos.writeInt(messageType.getValue());
             return baos.toByteArray();

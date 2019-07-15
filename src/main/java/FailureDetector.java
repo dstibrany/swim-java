@@ -1,6 +1,7 @@
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.*;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeoutException;
 
 public class FailureDetector {
     private int protocolPeriod = 5;

@@ -1,9 +1,9 @@
 import java.io.IOException;
 import java.net.SocketException;
 
-public class SwimJava  {
+public class SwimJava {
 
-    public static void main(String[] args) throws SocketException, IOException {
+    public static void main(String[] args) throws IOException {
         while (true) {
 
             /*

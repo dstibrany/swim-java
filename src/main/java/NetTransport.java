@@ -15,7 +15,7 @@ public class NetTransport implements Transport {
         }
     }
 
-    public NetTransport()  {
+    public NetTransport() {
         try {
             socket = new DatagramSocket();
         } catch (SocketException e) {
@@ -25,7 +25,7 @@ public class NetTransport implements Transport {
     }
 
     @Override
-    public Message receive()  {
+    public Message receive() {
         byte[] buf = new byte[256];
         DatagramPacket packet = new DatagramPacket(buf, 0, buf.length);
         try {
@@ -38,7 +38,7 @@ public class NetTransport implements Transport {
     }
 
     @Override
-    public void send(Message message)  {
+    public void send(Message message) {
         byte[] messageData = message.serialize();
         Member member = message.getMember();
         DatagramPacket packet = new DatagramPacket(messageData, 0, messageData.length, member.getAddress(), member.getPort());

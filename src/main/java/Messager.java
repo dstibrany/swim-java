@@ -6,7 +6,7 @@ public class Messager {
     private ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
     private Transport t;
 
-    Message ping(Member member) throws TimeoutException, InterruptedException, ExecutionException  {
+    Message ping(Member member) throws TimeoutException, InterruptedException, ExecutionException {
         Message ping = new Message(MessageType.PING, member);
         Future<Message> f = executor.submit(() -> {
             Transport t = new NetTransport();
