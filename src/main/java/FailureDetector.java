@@ -33,13 +33,13 @@ public class FailureDetector {
                 try {
                     logger.info("Sending PING-REQ to %d hosts", targets.size());
                     List<Message> messages = dispatcher.pingReq(targets);
+                    logger.info("Received ACK from Indirect Probes");
                 } catch (TimeoutException e2) {
                     logger.info("No ACKs from Indirect Probes, dropping %s from membership list", target.toString());
-                    membershipList.remove(target);
+//                    membershipList.remove(target);
                 }
             }
-            Thread.sleep(1000);
-            logger.info("%s is still alive", target.toString());
+            Thread.sleep(5000);
         }
     }
 }

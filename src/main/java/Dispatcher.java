@@ -6,6 +6,7 @@ public class Dispatcher {
     private ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
     private TransportFactory tf;
     private Transport listener;
+    private final int timeout = 5000;
 
     Dispatcher(TransportFactory tf) {
         this.tf = tf;
@@ -25,7 +26,7 @@ public class Dispatcher {
             t.close();
             return ack;
         });
-        return f.get(1000, TimeUnit.MILLISECONDS);
+        return f.get(timeout, TimeUnit.MILLISECONDS);
     }
 
     void ack(Member member) {
@@ -49,11 +50,14 @@ public class Dispatcher {
                 return ack;
             });
         }
-        List<Future<Message>> acks = executor.invokeAll(messages, 1000, TimeUnit.MILLISECONDS);
+        List<Future<Message>> acks = executor.invokeAll(messages, timeout, TimeUnit.MILLISECONDS);
         List<Message> ackMessages = new ArrayList<>();
         for (Future<Message> ack : acks) {
-            if (ack.isDone()) ackMessages.add(ack.get());
+            if (!ack.isCancelled()) {
+                ackMessages.add(ack.get());
+            }
         }
+        if (ackMessages.size() == 0) throw new TimeoutException();
         return ackMessages;
     }
 
