@@ -1,6 +1,9 @@
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeoutException;
+
 public class Listener {
     private final Logger logger;
     private Dispatcher dispatcher;
@@ -10,7 +13,7 @@ public class Listener {
         this.dispatcher = dispatcher;
     }
 
-    public void start() {
+    public void start() throws InterruptedException, ExecutionException {
         while (true) {
             Message message = dispatcher.receive();
             switch (message.getMessageType()) {
@@ -23,8 +26,13 @@ public class Listener {
                     logger.info("Received PING-REQ from %s for %s",
                             message.getMember().toString(),
                             message.getIndirectProbeMember().toString());
-                    dispatcher.indirectProbe(message.getMember(), message.getIndirectProbeMember());
-                    logger.info("Sent ACK to %s", message.getMember().toString());
+                    try {
+                        Message ack = dispatcher.ping(message.getIndirectProbeMember());
+                        dispatcher.ack(message.getMember());
+                        logger.info("Sent ACK to %s", message.getMember().toString());
+                    } catch (TimeoutException e) {
+                       e.printStackTrace();
+                    }
                     break;
                 case ACK:
                     logger.info("Received ACK from %s...dropping", message.getMember().toString());

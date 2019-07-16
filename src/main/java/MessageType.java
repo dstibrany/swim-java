@@ -22,7 +22,12 @@ public enum MessageType {
     }
 
     public static MessageType getType(int value) {
-        return lookup.get(value);
+        MessageType type = lookup.get(value);
+        if (type == null) {
+            return MessageType.UNKNOWN;
+        } else {
+           return type;
+        }
     }
 
     public int getValue() {

@@ -29,13 +29,14 @@ public class FailureDetector {
                 logger.info("Received ACK from %s", target.toString());
             } catch (TimeoutException e) {
                 logger.info("Timeout while waiting for ACK from %s", target.toString());
-                List<Member> targets = Arrays.asList(membershipList.get(0));
+                List<Member> pingReqtargets = Arrays.asList(membershipList.get(0));
                 try {
-                    logger.info("Sending PING-REQ to %d hosts", targets.size());
-                    List<Message> messages = dispatcher.pingReq(targets);
+                    logger.info("Sending PING-REQ to %d hosts", pingReqtargets.size());
+                    List<Message> messages = dispatcher.pingReq(pingReqtargets, target);
                     logger.info("Received ACK from Indirect Probes");
                 } catch (TimeoutException e2) {
-                    logger.info("No ACKs from Indirect Probes, dropping %s from membership list", target.toString());
+                    logger.info("Timeout waiting for Indirect Probes", target.toString());
+                    logger.info("Dropping %s from membership list", target.toString());
 //                    membershipList.remove(target);
                 }
             }

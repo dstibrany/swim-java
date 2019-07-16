@@ -38,12 +38,12 @@ public class Dispatcher {
         });
     }
 
-    List<Message> pingReq(List<Member> members) throws TimeoutException, InterruptedException, ExecutionException {
+    List<Message> pingReq(List<Member> members, Member iProbeTarget) throws TimeoutException, InterruptedException, ExecutionException {
         List<Callable<Message>> messages = new ArrayList<>();
         for (Member member : members) {
             messages.add(() -> {
                 Transport t = tf.create();
-                Message ping = new Message(MessageType.PING, member);
+                Message ping = new Message(MessageType.PING_REQ, member, iProbeTarget);
                 t.send(ping);
                 Message ack = t.receive();
                 t.close();
@@ -60,16 +60,4 @@ public class Dispatcher {
         if (ackMessages.size() == 0) throw new TimeoutException();
         return ackMessages;
     }
-
-    void indirectProbe(Member from, Member to) {
-        Message ping = new Message(MessageType.PING, to);
-        executor.submit(() -> {
-            Transport t = tf.create();
-            t.send(ping);
-            Message ack = t.receive();
-            t.send(new Message(MessageType.ACK, from));
-            t.close();
-        });
-    }
-
 }

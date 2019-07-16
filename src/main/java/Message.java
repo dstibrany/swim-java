@@ -6,18 +6,18 @@ public class Message {
     private Member member;
     private Member indirectProbeMember;
 
-    public Message(MessageType messageType, Member member) {
+    Message(MessageType messageType, Member member) {
         this.messageType = messageType;
         this.member = member;
     }
 
-    public Message(MessageType messageType, Member member, Member indirectProbeMember) {
+    Message(MessageType messageType, Member member, Member indirectProbeMember) {
         this.messageType = messageType;
         this.member = member;
         this.indirectProbeMember = indirectProbeMember;
     }
 
-    public static Message deserialize(byte[] data, Member member) {
+    static Message deserialize(byte[] data, Member member) {
         MessageType messageType;
         Message message;
 
@@ -40,22 +40,25 @@ public class Message {
         return message;
     }
 
-    public MessageType getMessageType() {
-        if (messageType == null) return MessageType.UNKNOWN;
-        else return messageType;
+    MessageType getMessageType() {
+        return messageType;
     }
 
-    public Member getMember() {
+    Member getMember() {
         return member;
     }
 
-    public Member getIndirectProbeMember() {
+    Member getIndirectProbeMember() {
         return indirectProbeMember;
     }
 
-    public byte[] serialize() {
+    byte[] serialize() {
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream(); DataOutputStream dos = new DataOutputStream(baos)) {
             dos.writeInt(messageType.getValue());
+            if (messageType == MessageType.PING_REQ) {
+                dos.write(indirectProbeMember.getAddress().getAddress());
+                dos.writeInt(indirectProbeMember.getPort());
+            }
             return baos.toByteArray();
         } catch (IOException e) {
             e.printStackTrace();

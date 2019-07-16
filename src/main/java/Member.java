@@ -1,4 +1,5 @@
 import java.net.InetAddress;
+import java.util.Objects;
 
 public class Member {
     private int port;
@@ -9,16 +10,30 @@ public class Member {
         this.port = port;
     }
 
-    public int getPort() {
+    int getPort() {
         return port;
     }
 
-    public InetAddress getAddress() {
+    InetAddress getAddress() {
         return address;
     }
 
     @Override
     public String toString() {
         return address.getHostAddress() + ":" + port;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Member member = (Member) o;
+        return port == member.port &&
+                address.equals(member.address);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(port, address);
     }
 }
