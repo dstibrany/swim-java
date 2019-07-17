@@ -1,5 +1,3 @@
-import sun.nio.ch.Net;
-
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -49,6 +47,10 @@ public class NetTransport implements Transport {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public void sendAndReceive(Message message) {
+
     }
 
     @Override

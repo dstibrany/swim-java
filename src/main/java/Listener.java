@@ -13,34 +13,39 @@ public class Listener {
         this.dispatcher = dispatcher;
     }
 
-    public void start() throws InterruptedException, ExecutionException {
+    void start() throws InterruptedException, ExecutionException {
         while (true) {
-            Message message = dispatcher.receive();
-            switch (message.getMessageType()) {
-                case PING:
-                    logger.info("Received PING from %s", message.getMember().toString());
-                    dispatcher.ack(message.getMember());
-                    logger.info("Sent ACK to %s", message.getMember().toString());
-                    break;
-                case PING_REQ:
-                    logger.info("Received PING-REQ from %s for %s",
-                            message.getMember().toString(),
-                            message.getIndirectProbeMember().toString());
-                    try {
-                        Message ack = dispatcher.ping(message.getIndirectProbeMember());
-                        dispatcher.ack(message.getMember());
-                        logger.info("Sent ACK to %s", message.getMember().toString());
-                    } catch (TimeoutException e) {
-                       e.printStackTrace();
-                    }
-                    break;
-                case ACK:
-                    logger.info("Received ACK from %s...dropping", message.getMember().toString());
-                    break;
-                default:
-                    logger.info("Dropping unknown message type");
-                    break;
-            }
+            listenerHandler();
         }
     }
+
+    void listenerHandler() throws InterruptedException, ExecutionException {
+        Message message = dispatcher.receive();
+        switch (message.getMessageType()) {
+            case PING:
+                logger.info("Received PING from %s", message.getMember().toString());
+                dispatcher.ack(message.getMember());
+                logger.info("Sent ACK to %s", message.getMember().toString());
+                break;
+            case PING_REQ:
+                logger.info("Received PING-REQ from %s for %s",
+                        message.getMember().toString(),
+                        message.getIndirectProbeMember().toString());
+                try {
+                    Message ack = dispatcher.ping(message.getIndirectProbeMember());
+                    dispatcher.ack(message.getMember());
+                    logger.info("Sent ACK to %s", message.getMember().toString());
+                } catch (TimeoutException e) {
+                    logger.info("Timeout waiting for indirect probe to %s", message.getMember().toString());
+                }
+                break;
+            case ACK:
+                logger.info("Received ACK from %s...dropping", message.getMember().toString());
+                break;
+            default:
+                logger.info("Dropping unknown message type");
+                break;
+        }
+    }
+
 }
