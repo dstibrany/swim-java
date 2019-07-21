@@ -3,10 +3,10 @@ import java.util.List;
 import java.util.concurrent.*;
 
 public class Dispatcher {
+    private final int timeout = 5000;
     private ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
     private TransportFactory tf;
     private Transport listener;
-    private final int timeout = 5000;
 
     Dispatcher(TransportFactory tf) {
         this.tf = tf;

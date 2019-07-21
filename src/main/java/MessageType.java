@@ -26,7 +26,7 @@ public enum MessageType {
         if (type == null) {
             return MessageType.UNKNOWN;
         } else {
-           return type;
+            return type;
         }
     }
 

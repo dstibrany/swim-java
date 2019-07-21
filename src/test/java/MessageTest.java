@@ -6,7 +6,8 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.InetAddress;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class MessageTest {
     private Member member;
@@ -49,7 +50,7 @@ class MessageTest {
     }
 
     @Test
-    void serializePing() throws IOException{
+    void serializePing() throws IOException {
         Message ping = new Message(MessageType.PING, member);
         assertArrayEquals(createMessageBytes(MessageType.PING, null), ping.serialize());
     }

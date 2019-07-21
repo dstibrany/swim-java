@@ -1,16 +1,18 @@
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
 class FailureDetector {
+    private final Logger logger;
     private int protocolPeriod = 2000;
     private int subgroupSize = 2;
     private List<Member> membershipList;
     private Dispatcher dispatcher;
-    private final Logger logger;
 
     FailureDetector(List<Member> membershipList, Dispatcher dispatcher) {
         this.membershipList = membershipList;

@@ -1,8 +1,6 @@
-import jdk.nashorn.internal.ir.annotations.Ignore;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InOrder;
-import org.mockito.Incubating;
 
 import java.net.InetAddress;
 import java.util.concurrent.ExecutionException;
@@ -14,7 +12,7 @@ class ListenerTest {
     private Dispatcher dispatcher;
     private Listener listener;
     private InOrder inOrder;
-    private  Member sender;
+    private Member sender;
     private Member iProbeTarget;
 
     @BeforeEach
