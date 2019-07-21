@@ -14,6 +14,7 @@ class ListenerTest {
     private InOrder inOrder;
     private Member sender;
     private Member iProbeTarget;
+    private int reqTimeout;
 
     @BeforeEach
     void setUp() {
@@ -22,6 +23,8 @@ class ListenerTest {
         inOrder = inOrder(dispatcher);
         sender = new Member(1234, InetAddress.getLoopbackAddress());
         iProbeTarget = new Member(1235, InetAddress.getLoopbackAddress());
+        reqTimeout = 1000;
+        listener.setReqTimeout(reqTimeout);
     }
 
     @Test
@@ -43,7 +46,7 @@ class ListenerTest {
         listener.listenerProtocol();
 
         inOrder.verify(dispatcher).receive();
-        inOrder.verify(dispatcher).ping(iProbeTarget);
+        inOrder.verify(dispatcher).ping(iProbeTarget, reqTimeout);
         inOrder.verify(dispatcher).ack(sender);
 
     }
@@ -53,12 +56,12 @@ class ListenerTest {
     void testReceivedPingReqNoAck() throws InterruptedException, ExecutionException, TimeoutException {
         Message pingReq = new Message(MessageType.PING_REQ, sender, iProbeTarget);
         when(dispatcher.receive()).thenReturn(pingReq);
-        when(dispatcher.ping(iProbeTarget)).thenThrow(new TimeoutException());
+        when(dispatcher.ping(iProbeTarget, reqTimeout)).thenThrow(new TimeoutException());
 
         listener.listenerProtocol();
 
         inOrder.verify(dispatcher).receive();
-        inOrder.verify(dispatcher).ping(iProbeTarget);
+        inOrder.verify(dispatcher).ping(iProbeTarget, reqTimeout);
         verify(dispatcher, never()).ack(sender);
     }
 

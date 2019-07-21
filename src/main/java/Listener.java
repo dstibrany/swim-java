@@ -7,6 +7,7 @@ import java.util.concurrent.TimeoutException;
 public class Listener {
     private final Logger logger;
     private Dispatcher dispatcher;
+    private int reqTimeout = 2000;
 
     Listener(Dispatcher dispatcher) {
         logger = LogManager.getFormatterLogger();
@@ -32,7 +33,7 @@ public class Listener {
                         message.getMember().toString(),
                         message.getIndirectProbeMember().toString());
                 try {
-                    Message ack = dispatcher.ping(message.getIndirectProbeMember());
+                    Message ack = dispatcher.ping(message.getIndirectProbeMember(), reqTimeout);
                     dispatcher.ack(message.getMember());
                     logger.info("Sent ACK to %s", message.getMember().toString());
                 } catch (TimeoutException e) {
@@ -46,6 +47,10 @@ public class Listener {
                 logger.info("Dropping unknown message type");
                 break;
         }
+    }
+
+    void setReqTimeout(int timeoutInMillis) {
+        reqTimeout = timeoutInMillis;
     }
 
 }

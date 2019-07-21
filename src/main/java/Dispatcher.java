@@ -3,7 +3,6 @@ import java.util.List;
 import java.util.concurrent.*;
 
 public class Dispatcher {
-    private final int timeout = 5000;
     private ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
     private TransportFactory tf;
     private Transport listener;
@@ -17,7 +16,7 @@ public class Dispatcher {
         return listener.receive();
     }
 
-    Message ping(Member member) throws TimeoutException, InterruptedException, ExecutionException {
+    Message ping(Member member, int timeout) throws TimeoutException, InterruptedException, ExecutionException {
         Message ping = new Message(MessageType.PING, member);
         Future<Message> f = executor.submit(() -> {
             Transport t = tf.create();
@@ -38,7 +37,7 @@ public class Dispatcher {
         });
     }
 
-    List<Message> pingReq(List<Member> members, Member iProbeTarget) throws TimeoutException, InterruptedException, ExecutionException {
+    List<Message> pingReq(List<Member> members, Member iProbeTarget, int timeout) throws TimeoutException, InterruptedException, ExecutionException {
         List<Callable<Message>> messages = new ArrayList<>();
         for (Member member : members) {
             messages.add(() -> {

@@ -13,6 +13,7 @@ class FailureDetector {
     private int subgroupSize = 2;
     private List<Member> membershipList;
     private Dispatcher dispatcher;
+    private int reqTimeout = 1000;
 
     FailureDetector(List<Member> membershipList, Dispatcher dispatcher) {
         this.membershipList = membershipList;
@@ -38,7 +39,7 @@ class FailureDetector {
 
         try {
             logger.info("Sending PING to %s", target.toString());
-            Message ack = dispatcher.ping(target);
+            Message ack = dispatcher.ping(target, reqTimeout);
             logger.info("Received ACK from %s", target.toString());
         } catch (TimeoutException e) {
             logger.info("Timeout while waiting for ACK from %s", target.toString());
@@ -51,7 +52,7 @@ class FailureDetector {
             }
             try {
                 logger.info("Sending PING-REQ to %d hosts", pingReqtargets.size());
-                List<Message> messages = dispatcher.pingReq(pingReqtargets, target);
+                List<Message> messages = dispatcher.pingReq(pingReqtargets, target, reqTimeout);
                 logger.info("Received ACK from Indirect Probes");
             } catch (TimeoutException e2) {
                 logger.info("Timeout waiting for Indirect Probes", target.toString());
@@ -70,7 +71,6 @@ class FailureDetector {
 
         int selectionSize = Math.min(k, selectionList.size());
         for (int i = 0; i < selectionSize; i++) {
-            System.out.println(selectionList.size());
             int randomIndex = rand.nextInt(selectionList.size());
             randomMembers.add(selectionList.get(randomIndex));
             selectionList.remove(randomIndex);
@@ -79,12 +79,8 @@ class FailureDetector {
         return randomMembers;
     }
 
-    void setProtocolPeriod(int milliseconds) {
-        protocolPeriod = milliseconds;
-    }
-
-    void setSubgroupSize(int k) {
-        subgroupSize = k;
+    void setReqTimeout(int timeoutInMillis) {
+        reqTimeout = timeoutInMillis;
     }
 
     private void removeMember(Member target) {
