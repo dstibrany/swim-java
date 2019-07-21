@@ -23,14 +23,17 @@ class FailureDetectorTest {
 
     @BeforeEach
     void setUp() {
+        int protocolPeriod = 10;
+        reqTimeout = 10;
+
         dispatcher = mock(Dispatcher.class);
         memberList = new ArrayList<>();
         memberListSpy = spy(memberList);
         fd = new FailureDetector(memberList, dispatcher);
+        fd.setReqTimeout(reqTimeout);
+        fd.setProtocolPeriod(protocolPeriod);
         fdSpy = spy(fd);
         inOrder = inOrder(dispatcher);
-        reqTimeout = 1000;
-        fd.setReqTimeout(reqTimeout);
     }
 
     @Test

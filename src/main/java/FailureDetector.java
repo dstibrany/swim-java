@@ -83,6 +83,10 @@ class FailureDetector {
         reqTimeout = timeoutInMillis;
     }
 
+    void setProtocolPeriod(int protocolPeriodInMillis) {
+        protocolPeriod = protocolPeriodInMillis;
+    }
+
     private void removeMember(Member target) {
         logger.info("Dropping %s from membership list", target.toString());
         membershipList.remove(null);

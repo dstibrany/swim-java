@@ -23,7 +23,7 @@ class ListenerTest {
         inOrder = inOrder(dispatcher);
         sender = new Member(1234, InetAddress.getLoopbackAddress());
         iProbeTarget = new Member(1235, InetAddress.getLoopbackAddress());
-        reqTimeout = 1000;
+        reqTimeout = 10;
         listener.setReqTimeout(reqTimeout);
     }
 
