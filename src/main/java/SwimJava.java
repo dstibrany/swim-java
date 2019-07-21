@@ -5,14 +5,23 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class SwimJava {
+    private static int selfPort = 5555;
+    private static InetAddress selfAddress = InetAddress.getLoopbackAddress();
+    private static Member self = new Member(selfPort, selfAddress);
+
+    static Member getSelf() {
+        return self;
+    }
 
     public static void main(String[] args) {
-        Dispatcher m = new Dispatcher(new NetTransportFactory());
+        Dispatcher d = new Dispatcher(new NetTransportFactory());
         List<Member> memberlist = new ArrayList<>();
         memberlist.add(new Member(5556, InetAddress.getLoopbackAddress()));
+        memberlist.add(self);
+
         ExecutorService e = Executors.newFixedThreadPool(2);
         e.submit(() -> {
-            FailureDetector fd = new FailureDetector(memberlist, m);
+            FailureDetector fd = new FailureDetector(memberlist, d);
             try {
                 fd.start();
             } catch (Exception ex) {
@@ -21,7 +30,7 @@ public class SwimJava {
             }
         });
         e.submit(() -> {
-            Listener listener = new Listener(m);
+            Listener listener = new Listener(d);
             try {
                 listener.start();
             } catch (Exception ex2) {
@@ -29,9 +38,5 @@ public class SwimJava {
                 System.exit(1);
             }
         });
-
-
-
     }
-
 }

@@ -15,11 +15,11 @@ public class Listener {
 
     void start() throws InterruptedException, ExecutionException {
         while (true) {
-            listenerHandler();
+            listenerProtocol();
         }
     }
 
-    void listenerHandler() throws InterruptedException, ExecutionException {
+    void listenerProtocol() throws InterruptedException, ExecutionException {
         Message message = dispatcher.receive();
         switch (message.getMessageType()) {
             case PING:

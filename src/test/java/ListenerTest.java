@@ -1,12 +1,13 @@
+import jdk.nashorn.internal.ir.annotations.Ignore;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InOrder;
+import org.mockito.Incubating;
 
 import java.net.InetAddress;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 class ListenerTest {
@@ -30,7 +31,7 @@ class ListenerTest {
         Message ping = new Message(MessageType.PING, sender);
         when(dispatcher.receive()).thenReturn(ping);
 
-        listener.listenerHandler();
+        listener.listenerProtocol();
         inOrder.verify(dispatcher).receive();
         inOrder.verify(dispatcher).ack(sender);
 
@@ -41,7 +42,7 @@ class ListenerTest {
         Message pingReq = new Message(MessageType.PING_REQ, sender, iProbeTarget);
         when(dispatcher.receive()).thenReturn(pingReq);
 
-        listener.listenerHandler();
+        listener.listenerProtocol();
 
         inOrder.verify(dispatcher).receive();
         inOrder.verify(dispatcher).ping(iProbeTarget);
@@ -49,13 +50,14 @@ class ListenerTest {
 
     }
 
+
     @Test
     void testReceivedPingReqNoAck() throws InterruptedException, ExecutionException, TimeoutException {
         Message pingReq = new Message(MessageType.PING_REQ, sender, iProbeTarget);
         when(dispatcher.receive()).thenReturn(pingReq);
         when(dispatcher.ping(iProbeTarget)).thenThrow(new TimeoutException());
 
-        listener.listenerHandler();
+        listener.listenerProtocol();
 
         inOrder.verify(dispatcher).receive();
         inOrder.verify(dispatcher).ping(iProbeTarget);
