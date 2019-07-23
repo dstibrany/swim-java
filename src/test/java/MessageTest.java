@@ -50,6 +50,12 @@ class MessageTest {
     }
 
     @Test
+    void deserializeUnknown() {
+        Message unknown = Message.deserialize(new byte[256], member);
+        assertEquals(MessageType.UNKNOWN, unknown.getMessageType());
+    }
+
+    @Test
     void serializePing() throws IOException {
         Message ping = new Message(MessageType.PING, member);
         assertArrayEquals(createMessageBytes(MessageType.PING, null), ping.serialize());

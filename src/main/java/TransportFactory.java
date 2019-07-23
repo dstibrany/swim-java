@@ -1,5 +1,10 @@
-public interface TransportFactory {
-    Transport create();
+class TransportFactory {
 
-    Transport createListener(int port);
+    Transport create() {
+        return new NetTransport();
+    }
+
+    Transport createListener(int port) {
+        return new NetTransport(port);
+    }
 }

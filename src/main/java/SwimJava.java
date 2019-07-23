@@ -14,7 +14,7 @@ public class SwimJava {
     }
 
     public static void main(String[] args) {
-        Dispatcher d = new Dispatcher(new NetTransportFactory());
+        Dispatcher d = new Dispatcher(new TransportFactory());
         List<Member> memberlist = new ArrayList<>();
         memberlist.add(new Member(5556, InetAddress.getLoopbackAddress()));
         memberlist.add(self);

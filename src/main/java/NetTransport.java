@@ -1,12 +1,13 @@
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.net.Socket;
 import java.net.SocketException;
 
 public class NetTransport implements Transport {
     private DatagramSocket socket;
 
-    public NetTransport(int port) {
+    NetTransport(int port) {
         try {
             socket = new DatagramSocket(port);
         } catch (SocketException e) {
@@ -15,13 +16,16 @@ public class NetTransport implements Transport {
         }
     }
 
-    public NetTransport() {
+    NetTransport() {
         try {
             socket = new DatagramSocket();
         } catch (SocketException e) {
             e.printStackTrace();
         }
+    }
 
+    NetTransport(DatagramSocket s) {
+        socket = s;
     }
 
     @Override
@@ -33,8 +37,8 @@ public class NetTransport implements Transport {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        Member member = new Member(packet.getPort(), packet.getAddress());
-        return Message.deserialize(packet.getData(), member);
+
+        return Message.deserialize(packet.getData(), new Member(packet.getPort(), packet.getAddress()));
     }
 
     @Override
@@ -47,10 +51,6 @@ public class NetTransport implements Transport {
         } catch (IOException e) {
             e.printStackTrace();
         }
-    }
-
-    public void sendAndReceive(Message message) {
-
     }
 
     @Override
