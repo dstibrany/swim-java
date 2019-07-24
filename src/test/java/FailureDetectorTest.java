@@ -1,8 +1,6 @@
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InOrder;
-import org.mockito.Mockito;
 
 import java.net.InetAddress;
 import java.util.ArrayList;
@@ -36,7 +34,6 @@ class FailureDetectorTest {
         fdSpy = spy(fd);
         inOrder = inOrder(dispatcher);
     }
-
 
     @Test
     void testSendPingReceiveAck() throws InterruptedException, ExecutionException, TimeoutException {
