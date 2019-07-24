@@ -16,6 +16,16 @@ public class Dispatcher {
         return listener.receive();
     }
 
+    void ack(Member member) throws InterruptedException, ExecutionException {
+        Message ack = new Message(MessageType.ACK, member);
+        Future<?> f = executor.submit(() -> {
+            Transport t = tf.create();
+            t.send(ack);
+            t.close();
+        });
+        f.get();
+    }
+
     Message ping(Member member, int timeout) throws TimeoutException, InterruptedException, ExecutionException {
         Message ping = new Message(MessageType.PING, member);
         Future<Message> f = executor.submit(() -> {
@@ -28,19 +38,12 @@ public class Dispatcher {
         return f.get(timeout, TimeUnit.MILLISECONDS);
     }
 
-    void ack(Member member) {
-        Message ack = new Message(MessageType.ACK, member);
-        executor.submit(() -> {
-            Transport t = tf.create();
-            t.send(ack);
-            t.close();
-        });
-    }
 
-    List<Message> pingReq(List<Member> members, Member iProbeTarget, int timeout) throws TimeoutException, InterruptedException, ExecutionException {
-        List<Callable<Message>> messages = new ArrayList<>();
+    List<Message> pingReq(List<Member> members, Member iProbeTarget, int timeout)
+            throws TimeoutException, InterruptedException, ExecutionException {
+        List<Callable<Message>> pingRequests = new ArrayList<>();
         for (Member member : members) {
-            messages.add(() -> {
+            pingRequests.add(() -> {
                 Transport t = tf.create();
                 Message ping = new Message(MessageType.PING_REQ, member, iProbeTarget);
                 t.send(ping);
@@ -49,7 +52,7 @@ public class Dispatcher {
                 return ack;
             });
         }
-        List<Future<Message>> acks = executor.invokeAll(messages, timeout, TimeUnit.MILLISECONDS);
+        List<Future<Message>> acks = executor.invokeAll(pingRequests, timeout, TimeUnit.MILLISECONDS);
         List<Message> ackMessages = new ArrayList<>();
         for (Future<Message> ack : acks) {
             if (!ack.isCancelled()) {
