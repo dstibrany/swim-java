@@ -99,6 +99,21 @@ class DispatcherTest {
 
     @Test
     void testPingReqWithTimeout() {
+        int pingReqTimeout = 10;
+        Member m1 = new Member(1234, InetAddress.getLoopbackAddress());
+        Member m2 = new Member(1235, InetAddress.getLoopbackAddress());
+        Member iProbeTarget = new Member(1236, InetAddress.getLoopbackAddress());
+        List<Member> pingReqTargets = Arrays.asList(m1, m2);
+        when(t.receive()).thenAnswer(i -> {
+            Thread.sleep(pingReqTimeout + 10);
+            return new Message(MessageType.ACK, m2);
+        });
+
+        assertThrows(TimeoutException.class, () -> {
+            List<Message> acks = d.pingReq(pingReqTargets, iProbeTarget, pingReqTimeout);
+        });
+
+        verify(t, times(pingReqTargets.size())).send(any(Message.class));
     }
 
     @Test
