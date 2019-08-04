@@ -5,13 +5,14 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
 public class Listener {
-    private final Logger logger;
-    private Dispatcher dispatcher;
-    private int reqTimeout = 2000;
 
-    Listener(Dispatcher dispatcher) {
-        logger = LogManager.getFormatterLogger();
+    private final Logger logger = LogManager.getFormatterLogger();
+    private Dispatcher dispatcher;
+    private Config conf;
+
+    Listener(Dispatcher dispatcher, Config conf) {
         this.dispatcher = dispatcher;
+        this.conf = conf;
     }
 
     void start() throws InterruptedException, ExecutionException {
@@ -33,7 +34,7 @@ public class Listener {
                         message.getMember().toString(),
                         message.getIndirectProbeMember().toString());
                 try {
-                    Message ack = dispatcher.ping(message.getIndirectProbeMember(), reqTimeout);
+                    Message ack = dispatcher.ping(message.getIndirectProbeMember(), conf.getReqTimeout());
                     dispatcher.ack(message.getMember());
                     logger.info("Sent ACK to %s", message.getMember().toString());
                 } catch (TimeoutException e) {
@@ -48,9 +49,4 @@ public class Listener {
                 break;
         }
     }
-
-    void setReqTimeout(int timeoutInMillis) {
-        reqTimeout = timeoutInMillis;
-    }
-
 }

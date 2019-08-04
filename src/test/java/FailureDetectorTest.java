@@ -1,3 +1,4 @@
+import com.typesafe.config.ConfigFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InOrder;
@@ -19,18 +20,18 @@ class FailureDetectorTest {
     private InOrder inOrder;
     private List<Member> memberList;
     private List<Member> memberListSpy;
-    private int reqTimeout;
+    private Config config;
 
     @BeforeEach
     void setUp() {
-        int protocolPeriod = 10;
-        reqTimeout = 10;
+        com.typesafe.config.Config mergedConf = ConfigFactory
+                .parseString("swim-java.protocol_period=10, swim-java.request_timeout=10")
+                .withFallback(ConfigFactory.defaultReference());
+        config = new Config(mergedConf);
         dispatcher = mock(Dispatcher.class);
         memberList = new ArrayList<>();
         memberListSpy = spy(memberList);
-        fd = new FailureDetector(memberList, dispatcher);
-        fd.setReqTimeout(reqTimeout);
-        fd.setProtocolPeriod(protocolPeriod);
+        fd = new FailureDetector(memberList, dispatcher, config);
         fdSpy = spy(fd);
         inOrder = inOrder(dispatcher);
     }
@@ -41,10 +42,10 @@ class FailureDetectorTest {
 
         memberList.add(SwimJava.getSelf());
         memberList.add(target);
-        when(dispatcher.ping(target, reqTimeout)).thenReturn(new Message(MessageType.ACK, target));
+        when(dispatcher.ping(target, config.getReqTimeout())).thenReturn(new Message(MessageType.ACK, target));
 
         fd.runProtocol();
-        verify(dispatcher).ping(target, reqTimeout);
+        verify(dispatcher).ping(target, config.getReqTimeout());
         verify(dispatcher, never()).pingReq(anyList(), any(Member.class), anyInt());
         verify(memberListSpy, never()).remove(any(Member.class));
     }
@@ -56,13 +57,13 @@ class FailureDetectorTest {
         memberList.add(SwimJava.getSelf());
         memberList.add(target);
         memberList.add(pingReqTarget);
-        when(dispatcher.ping(target, reqTimeout)).thenThrow(TimeoutException.class);
-        when(dispatcher.pingReq(Arrays.asList(pingReqTarget), target, reqTimeout)).thenReturn(new ArrayList<Message>());
+        when(dispatcher.ping(target, config.getReqTimeout())).thenThrow(TimeoutException.class);
+        when(dispatcher.pingReq(Arrays.asList(pingReqTarget), target, config.getReqTimeout())).thenReturn(new ArrayList<Message>());
         when(fdSpy.getRandomMembers(1, null)).thenReturn(Arrays.asList(target));
 
         fdSpy.runProtocol();
-        inOrder.verify(dispatcher).ping(target, reqTimeout);
-        inOrder.verify(dispatcher).pingReq(Arrays.asList(pingReqTarget), target, reqTimeout);
+        inOrder.verify(dispatcher).ping(target, config.getReqTimeout());
+        inOrder.verify(dispatcher).pingReq(Arrays.asList(pingReqTarget), target, config.getReqTimeout());
         verify(memberListSpy, never()).remove(any(Member.class));
     }
 
@@ -73,13 +74,14 @@ class FailureDetectorTest {
         memberList.add(SwimJava.getSelf());
         memberList.add(target);
         memberList.add(pingReqTarget);
-        when(dispatcher.ping(target, reqTimeout)).thenThrow(TimeoutException.class);
-        when(dispatcher.pingReq(Arrays.asList(pingReqTarget), target, reqTimeout)).thenThrow(TimeoutException.class);
+        System.out.println(config.getReqTimeout());
+        when(dispatcher.ping(target, config.getReqTimeout())).thenThrow(TimeoutException.class);
+        when(dispatcher.pingReq(Arrays.asList(pingReqTarget), target, config.getReqTimeout())).thenThrow(TimeoutException.class);
         when(fdSpy.getRandomMembers(1, null)).thenReturn(Arrays.asList(target));
 
         fdSpy.runProtocol();
-        inOrder.verify(dispatcher).ping(target, reqTimeout);
-        inOrder.verify(dispatcher).pingReq(Arrays.asList(pingReqTarget), target, reqTimeout);
+        inOrder.verify(dispatcher).ping(target, config.getReqTimeout());
+        inOrder.verify(dispatcher).pingReq(Arrays.asList(pingReqTarget), target, config.getReqTimeout());
         // TODO: add this back
 //        verify(memberListSpy).remove(any(Member.class));
 //        assertFalse(memberList.contains(target));
@@ -97,7 +99,7 @@ class FailureDetectorTest {
         List<Member> membershipList = Arrays.asList(m1, m2, m3, m4, m5);
         int originalSize = membershipList.size();
 
-        FailureDetector fd = new FailureDetector(membershipList, dispatcher);
+        FailureDetector fd = new FailureDetector(membershipList, dispatcher, config);
         List<Member> randomMembers1 = fd.getRandomMembers(k, null);
         List<Member> randomMembers2 = fd.getRandomMembers(k, null);
         assertEquals(k, randomMembers1.size());
@@ -111,7 +113,7 @@ class FailureDetectorTest {
         Member m1 = new Member(1234, InetAddress.getLoopbackAddress());
         List<Member> membershiplist = Arrays.asList(SwimJava.getSelf(), m1);
 
-        FailureDetector fd = new FailureDetector(membershiplist, dispatcher);
+        FailureDetector fd = new FailureDetector(membershiplist, dispatcher, config);
         for (int i = 0; i < 100; i++) {
             List<Member> randomMembers = fd.getRandomMembers(1, null);
             assertEquals(m1, randomMembers.get(0));
@@ -124,7 +126,7 @@ class FailureDetectorTest {
         Member m2 = new Member(1235, InetAddress.getLoopbackAddress());
         List<Member> membershipList = Arrays.asList(SwimJava.getSelf(), m1, m2);
 
-        FailureDetector fd = new FailureDetector(membershipList, dispatcher);
+        FailureDetector fd = new FailureDetector(membershipList, dispatcher, config);
         for (int i = 0; i < 10; i++) {
             List<Member> randomMembers = fd.getRandomMembers(1, m1);
             assertEquals(m2, randomMembers.get(0));
@@ -143,13 +145,13 @@ class FailureDetectorTest {
     @Test
     void testNoMembersToPingReq() throws InterruptedException, ExecutionException, TimeoutException {
         Member target = new Member(1234, InetAddress.getLoopbackAddress());
-        when(dispatcher.ping(target, reqTimeout)).thenThrow(TimeoutException.class);
+        when(dispatcher.ping(target, config.getReqTimeout())).thenThrow(TimeoutException.class);
         memberList.add(SwimJava.getSelf());
         memberList.add(target);
 
         fd.runProtocol();
 
-        verify(dispatcher).ping(target, reqTimeout);
+        verify(dispatcher).ping(target, config.getReqTimeout());
         verify(dispatcher, never()).pingReq(any(List.class), any(Member.class), anyInt());
         // TODO: add this back
 //        verify(memberListSpy).remove(target);

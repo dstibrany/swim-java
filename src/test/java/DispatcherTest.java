@@ -18,9 +18,11 @@ class DispatcherTest {
     private Dispatcher d;
     private Transport t;
     private InOrder inOrder;
+    private Config conf;
 
     @BeforeEach
     void setUp() {
+        conf = new Config();
         t = mock(NetTransport.class);
         inOrder = inOrder(t);
         TransportFactory tfStub = new TransportFactory() {
@@ -32,7 +34,7 @@ class DispatcherTest {
                 return t;
             }
         };
-        d = new Dispatcher(tfStub);
+        d = new Dispatcher(tfStub, conf);
     }
 
     @Test

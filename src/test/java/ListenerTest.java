@@ -1,3 +1,4 @@
+import com.typesafe.config.ConfigFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InOrder;
@@ -14,17 +15,19 @@ class ListenerTest {
     private InOrder inOrder;
     private Member sender;
     private Member iProbeTarget;
-    private int reqTimeout;
+    private Config config;
 
     @BeforeEach
     void setUp() {
+        com.typesafe.config.Config mergedConf = ConfigFactory
+                .parseString("swim-java.protocol_period=10, swim-java.request_timeout=10")
+                .withFallback(ConfigFactory.defaultReference());
+        config = new Config(mergedConf);
         dispatcher = mock(Dispatcher.class);
-        listener = new Listener(dispatcher);
+        listener = new Listener(dispatcher, config);
         inOrder = inOrder(dispatcher);
         sender = new Member(1234, InetAddress.getLoopbackAddress());
         iProbeTarget = new Member(1235, InetAddress.getLoopbackAddress());
-        reqTimeout = 10;
-        listener.setReqTimeout(reqTimeout);
     }
 
     @Test
@@ -46,7 +49,7 @@ class ListenerTest {
         listener.listenerProtocol();
 
         inOrder.verify(dispatcher).receive();
-        inOrder.verify(dispatcher).ping(iProbeTarget, reqTimeout);
+        inOrder.verify(dispatcher).ping(iProbeTarget, config.getReqTimeout());
         inOrder.verify(dispatcher).ack(sender);
 
     }
@@ -56,12 +59,12 @@ class ListenerTest {
     void testReceivedPingReqNoAck() throws InterruptedException, ExecutionException, TimeoutException {
         Message pingReq = new Message(MessageType.PING_REQ, sender, iProbeTarget);
         when(dispatcher.receive()).thenReturn(pingReq);
-        when(dispatcher.ping(iProbeTarget, reqTimeout)).thenThrow(new TimeoutException());
+        when(dispatcher.ping(iProbeTarget, config.getReqTimeout())).thenThrow(new TimeoutException());
 
         listener.listenerProtocol();
 
         inOrder.verify(dispatcher).receive();
-        inOrder.verify(dispatcher).ping(iProbeTarget, reqTimeout);
+        inOrder.verify(dispatcher).ping(iProbeTarget, config.getReqTimeout());
         verify(dispatcher, never()).ack(sender);
     }
 

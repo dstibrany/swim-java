@@ -7,9 +7,9 @@ public class Dispatcher {
     private TransportFactory tf;
     private Transport listener;
 
-    Dispatcher(TransportFactory tf) {
+    Dispatcher(TransportFactory tf, Config conf) {
         this.tf = tf;
-        listener = tf.createListener(5555);
+        listener = tf.createListener(conf.getPort());
     }
 
     Message receive() {
