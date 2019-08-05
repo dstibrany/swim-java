@@ -26,7 +26,7 @@ public class Dispatcher {
         f.get();
     }
 
-    Message ping(Member member, int timeout) throws TimeoutException, InterruptedException, ExecutionException {
+    void ping(Member member, int timeout) throws TimeoutException, InterruptedException, ExecutionException {
         Message ping = new Message(MessageType.PING, member);
         Future<Message> f = executor.submit(() -> {
             Transport t = tf.create();
@@ -35,11 +35,11 @@ public class Dispatcher {
             t.close();
             return ack;
         });
-        return f.get(timeout, TimeUnit.MILLISECONDS);
+        f.get(timeout, TimeUnit.MILLISECONDS);
     }
 
 
-    List<Message> pingReq(List<Member> members, Member iProbeTarget, int timeout)
+    void pingReq(List<Member> members, Member iProbeTarget, int timeout)
             throws TimeoutException, InterruptedException, ExecutionException {
         List<Callable<Message>> pingRequests = new ArrayList<>();
         for (Member member : members) {
@@ -52,14 +52,17 @@ public class Dispatcher {
                 return ack;
             });
         }
+
         List<Future<Message>> acks = executor.invokeAll(pingRequests, timeout, TimeUnit.MILLISECONDS);
-        List<Message> ackMessages = new ArrayList<>();
+
+        int ackCount = 0;
         for (Future<Message> ack : acks) {
             if (!ack.isCancelled()) {
-                ackMessages.add(ack.get());
+                ackCount++;
+//                ackMessages.add(ack.get());
             }
         }
-        if (ackMessages.size() == 0) throw new TimeoutException();
-        return ackMessages;
+
+        if (ackCount == 0) throw new TimeoutException();
     }
 }

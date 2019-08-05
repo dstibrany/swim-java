@@ -34,7 +34,7 @@ public class Listener {
                         message.getMember().toString(),
                         message.getIndirectProbeMember().toString());
                 try {
-                    Message ack = dispatcher.ping(message.getIndirectProbeMember(), conf.getReqTimeout());
+                    dispatcher.ping(message.getIndirectProbeMember(), conf.getReqTimeout());
                     dispatcher.ack(message.getMember());
                     logger.info("Sent ACK to %s", message.getMember().toString());
                 } catch (TimeoutException e) {

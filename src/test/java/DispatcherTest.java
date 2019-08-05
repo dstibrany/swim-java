@@ -82,7 +82,7 @@ class DispatcherTest {
         ArgumentCaptor<Message> argument = ArgumentCaptor.forClass(Message.class);
         when(t.receive()).thenReturn(new Message(MessageType.ACK, m1), new Message(MessageType.ACK, m2));
 
-        List<Message> acks = d.pingReq(pingReqTargets, iProbeTarget, 100);
+        d.pingReq(pingReqTargets, iProbeTarget, 100);
 
         verify(t, times(pingReqTargets.size())).send(argument.capture());
         verify(t, times(pingReqTargets.size())).receive();
@@ -96,7 +96,6 @@ class DispatcherTest {
             pingReqTargetsClone.remove(msg.getMember());
 
         }
-        assertEquals(pingReqTargets.size(), acks.size());
     }
 
     @Test
@@ -112,7 +111,7 @@ class DispatcherTest {
         });
 
         assertThrows(TimeoutException.class, () -> {
-            List<Message> acks = d.pingReq(pingReqTargets, iProbeTarget, pingReqTimeout);
+            d.pingReq(pingReqTargets, iProbeTarget, pingReqTimeout);
         });
 
         verify(t, times(pingReqTargets.size())).send(any(Message.class));

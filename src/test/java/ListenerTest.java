@@ -51,15 +51,13 @@ class ListenerTest {
         inOrder.verify(dispatcher).receive();
         inOrder.verify(dispatcher).ping(iProbeTarget, config.getReqTimeout());
         inOrder.verify(dispatcher).ack(sender);
-
     }
-
 
     @Test
     void testReceivedPingReqNoAck() throws InterruptedException, ExecutionException, TimeoutException {
         Message pingReq = new Message(MessageType.PING_REQ, sender, iProbeTarget);
         when(dispatcher.receive()).thenReturn(pingReq);
-        when(dispatcher.ping(iProbeTarget, config.getReqTimeout())).thenThrow(new TimeoutException());
+        doThrow(TimeoutException.class).when(dispatcher).ping(iProbeTarget, config.getReqTimeout());
 
         listener.listenerProtocol();
 

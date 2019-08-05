@@ -37,7 +37,7 @@ class FailureDetector {
 
         try {
             logger.info("Sending PING to %s", target.toString());
-            Message ack = dispatcher.ping(target, conf.getReqTimeout());
+            dispatcher.ping(target, conf.getReqTimeout());
             logger.info("Received ACK from %s", target.toString());
         } catch (TimeoutException e) {
             logger.info("Timeout while waiting for ACK from %s", target.toString());
@@ -50,7 +50,7 @@ class FailureDetector {
             }
             try {
                 logger.info("Sending PING-REQ to %d hosts", pingReqtargets.size());
-                List<Message> messages = dispatcher.pingReq(pingReqtargets, target, conf.getReqTimeout());
+                dispatcher.pingReq(pingReqtargets, target, conf.getReqTimeout());
                 logger.info("Received ACK from Indirect Probes");
             } catch (TimeoutException e2) {
                 logger.info("Timeout waiting for Indirect Probes", target.toString());

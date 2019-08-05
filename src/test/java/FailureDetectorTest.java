@@ -42,7 +42,6 @@ class FailureDetectorTest {
 
         memberList.add(SwimJava.getSelf());
         memberList.add(target);
-        when(dispatcher.ping(target, config.getReqTimeout())).thenReturn(new Message(MessageType.ACK, target));
 
         fd.runProtocol();
         verify(dispatcher).ping(target, config.getReqTimeout());
@@ -57,8 +56,7 @@ class FailureDetectorTest {
         memberList.add(SwimJava.getSelf());
         memberList.add(target);
         memberList.add(pingReqTarget);
-        when(dispatcher.ping(target, config.getReqTimeout())).thenThrow(TimeoutException.class);
-        when(dispatcher.pingReq(Arrays.asList(pingReqTarget), target, config.getReqTimeout())).thenReturn(new ArrayList<Message>());
+        doThrow(TimeoutException.class).when(dispatcher).ping(target, config.getReqTimeout());
         when(fdSpy.getRandomMembers(1, null)).thenReturn(Arrays.asList(target));
 
         fdSpy.runProtocol();
@@ -75,8 +73,7 @@ class FailureDetectorTest {
         memberList.add(target);
         memberList.add(pingReqTarget);
         System.out.println(config.getReqTimeout());
-        when(dispatcher.ping(target, config.getReqTimeout())).thenThrow(TimeoutException.class);
-        when(dispatcher.pingReq(Arrays.asList(pingReqTarget), target, config.getReqTimeout())).thenThrow(TimeoutException.class);
+        doThrow(TimeoutException.class).when(dispatcher).ping(target, config.getReqTimeout());
         when(fdSpy.getRandomMembers(1, null)).thenReturn(Arrays.asList(target));
 
         fdSpy.runProtocol();
@@ -145,7 +142,7 @@ class FailureDetectorTest {
     @Test
     void testNoMembersToPingReq() throws InterruptedException, ExecutionException, TimeoutException {
         Member target = new Member(1234, InetAddress.getLoopbackAddress());
-        when(dispatcher.ping(target, config.getReqTimeout())).thenThrow(TimeoutException.class);
+        doThrow(TimeoutException.class).when(dispatcher).ping(target, config.getReqTimeout());
         memberList.add(SwimJava.getSelf());
         memberList.add(target);
 
