@@ -6,6 +6,8 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -15,17 +17,19 @@ class NetTransportTest {
 
     private NetTransport transport;
     private DatagramSocket socket;
+    private List<Gossip> gossipList;
 
     @BeforeEach
     void setUp() {
         socket = mock(DatagramSocket.class);
         transport = new NetTransport(socket);
+        gossipList = new ArrayList<>();
     }
 
     @Test
     void testReceive() throws IOException {
         Member m1 = new Member(1234, InetAddress.getLoopbackAddress());
-        Message ping = new Message(MessageType.PING, m1);
+        Message ping = new Message(MessageType.PING, m1, gossipList);
         doAnswer(invocation -> {
             Object[] args = invocation.getArguments();
             ((DatagramPacket) args[0]).setData(ping.serialize());
@@ -42,7 +46,7 @@ class NetTransportTest {
     @Test
     void testSend() throws IOException {
         Member m1 = new Member(1234, InetAddress.getLoopbackAddress());
-        Message ping = new Message(MessageType.PING, m1);
+        Message ping = new Message(MessageType.PING, m1, gossipList);
         ArgumentCaptor<DatagramPacket> argument = ArgumentCaptor.forClass(DatagramPacket.class);
 
         transport.send(ping);

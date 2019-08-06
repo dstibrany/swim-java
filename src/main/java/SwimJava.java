@@ -12,7 +12,8 @@ public class SwimJava {
 
     public static void main(String[] args) {
         Config conf = new Config();
-        Dispatcher d = new Dispatcher(new TransportFactory(), conf);
+        Disseminator disseminator = new Disseminator();
+        Dispatcher d = new Dispatcher(new TransportFactory(), disseminator, conf);
         self = new Member(conf.getPort(), conf.getAddress());
         List<Member> memberlist = new ArrayList<>();
         memberlist.add(self);

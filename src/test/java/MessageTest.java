@@ -5,6 +5,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.InetAddress;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -12,11 +14,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class MessageTest {
     private Member member;
     private Member indirectProbeMember;
+    private List<Gossip> gossipList;
 
     @BeforeEach
     void setUp() {
         member = new Member(1234, InetAddress.getLoopbackAddress());
         indirectProbeMember = new Member(1235, InetAddress.getLoopbackAddress());
+        gossipList = new ArrayList<>();
     }
 
     private byte[] createMessageBytes(MessageType mt, Member indirectProbeMember) throws IOException {
@@ -27,6 +31,7 @@ class MessageTest {
             dos.write(indirectProbeMember.getAddress().getAddress());
             dos.writeInt(indirectProbeMember.getPort());
         }
+        dos.writeInt(0); // Gossip Messages
         return baos.toByteArray();
     }
 
@@ -57,13 +62,13 @@ class MessageTest {
 
     @Test
     void serializePing() throws IOException {
-        Message ping = new Message(MessageType.PING, member);
+        Message ping = new Message(MessageType.PING, member, gossipList);
         assertArrayEquals(createMessageBytes(MessageType.PING, null), ping.serialize());
     }
 
     @Test
     void serializePingReq() throws IOException {
-        Message pingReq = new Message(MessageType.PING_REQ, member, indirectProbeMember);
+        Message pingReq = new Message(MessageType.PING_REQ, member, indirectProbeMember, gossipList);
         assertArrayEquals(createMessageBytes(MessageType.PING_REQ, indirectProbeMember), pingReq.serialize());
     }
 }

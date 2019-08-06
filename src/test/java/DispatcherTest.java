@@ -19,11 +19,14 @@ class DispatcherTest {
     private Transport t;
     private InOrder inOrder;
     private Config conf;
+    private Disseminator disseminator;
+    private List<Gossip> gossipList;
 
     @BeforeEach
     void setUp() {
         conf = new Config();
         t = mock(NetTransport.class);
+        disseminator = mock(Disseminator.class);
         inOrder = inOrder(t);
         TransportFactory tfStub = new TransportFactory() {
             Transport create() {
@@ -34,11 +37,14 @@ class DispatcherTest {
                 return t;
             }
         };
-        d = new Dispatcher(tfStub, conf);
+        d = new Dispatcher(tfStub, disseminator, conf);
+        gossipList = new ArrayList<>();
     }
 
     @Test
     void testReceive() {
+        Member m1 = new Member(1234, InetAddress.getLoopbackAddress());
+        when(t.receive()).thenReturn(new Message(MessageType.PING, m1, gossipList));
         d.receive();
         verify(t).receive();
     }
@@ -47,6 +53,7 @@ class DispatcherTest {
     void testPing() throws TimeoutException, InterruptedException, ExecutionException {
         Member m1 = new Member(1234, InetAddress.getLoopbackAddress());
         ArgumentCaptor<Message> argument = ArgumentCaptor.forClass(Message.class);
+        when(t.receive()).thenReturn(new Message(MessageType.ACK, m1, gossipList));
 
         d.ping(m1, 100);
 
@@ -65,7 +72,7 @@ class DispatcherTest {
         ArgumentCaptor<Message> argument = ArgumentCaptor.forClass(Message.class);
         when(t.receive()).thenAnswer(i -> {
             Thread.sleep(pingTimeout + 10);
-            return new Message(MessageType.ACK, m2);
+            return new Message(MessageType.ACK, m2, gossipList);
         });
 
         assertThrows(TimeoutException.class, () -> {
@@ -80,7 +87,10 @@ class DispatcherTest {
         Member iProbeTarget = new Member(1236, InetAddress.getLoopbackAddress());
         List<Member> pingReqTargets = Arrays.asList(m1, m2);
         ArgumentCaptor<Message> argument = ArgumentCaptor.forClass(Message.class);
-        when(t.receive()).thenReturn(new Message(MessageType.ACK, m1), new Message(MessageType.ACK, m2));
+        when(t.receive()).thenReturn(
+                new Message(MessageType.ACK, m1, gossipList),
+                new Message(MessageType.ACK, m2, gossipList)
+        );
 
         d.pingReq(pingReqTargets, iProbeTarget, 100);
 
@@ -94,7 +104,6 @@ class DispatcherTest {
             assertEquals(MessageType.PING_REQ, msg.getMessageType());
             assertTrue(pingReqTargetsClone.contains(msg.getMember()));
             pingReqTargetsClone.remove(msg.getMember());
-
         }
     }
 
@@ -107,7 +116,7 @@ class DispatcherTest {
         List<Member> pingReqTargets = Arrays.asList(m1, m2);
         when(t.receive()).thenAnswer(i -> {
             Thread.sleep(pingReqTimeout + 10);
-            return new Message(MessageType.ACK, m2);
+            return new Message(MessageType.ACK, m2, gossipList);
         });
 
         assertThrows(TimeoutException.class, () -> {

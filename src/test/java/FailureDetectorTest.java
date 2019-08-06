@@ -135,7 +135,7 @@ class FailureDetectorTest {
         memberList.add(SwimJava.getSelf());
         fd.runProtocol();
         verify(dispatcher, never()).ping(any(Member.class), anyInt());
-        verify(dispatcher, never()).pingReq(any(List.class), any(Member.class), anyInt());
+        verify(dispatcher, never()).pingReq(anyList(), any(Member.class), anyInt());
         verify(memberListSpy, never()).remove(any(Member.class));
     }
 
@@ -149,7 +149,7 @@ class FailureDetectorTest {
         fd.runProtocol();
 
         verify(dispatcher).ping(target, config.getReqTimeout());
-        verify(dispatcher, never()).pingReq(any(List.class), any(Member.class), anyInt());
+        verify(dispatcher, never()).pingReq(anyList(), any(Member.class), anyInt());
         // TODO: add this back
 //        verify(memberListSpy).remove(target);
     }
