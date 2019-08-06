@@ -12,28 +12,41 @@ public class SwimJava {
 
     public static void main(String[] args) {
         Config conf = new Config();
-        Disseminator disseminator = new Disseminator();
-        Dispatcher d = new Dispatcher(new TransportFactory(), disseminator, conf);
         self = new Member(conf.getPort(), conf.getAddress());
-        List<Member> memberlist = new ArrayList<>();
-        memberlist.add(self);
+        List<Member> memberList = new ArrayList<>();
+        memberList.add(self);
+        Disseminator disseminator = new Disseminator(memberList);
+        Dispatcher dispatcher = new Dispatcher(new TransportFactory(), disseminator, conf);
 
-        ExecutorService e = Executors.newFixedThreadPool(2);
-        e.submit(() -> {
-            FailureDetector fd = new FailureDetector(memberlist, d, conf);
+        ExecutorService executorService = Executors.newFixedThreadPool(2);
+
+        executorService.submit(() -> {
+            List<Member> seeds = conf.getSeeds();
+            if (!seeds.contains(self)) {
+                Member seed = seeds.get(0); // TODO: round robin
+                try {
+                    dispatcher.join(seed, conf.getReqTimeout());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    System.exit(1);
+                }
+            }
+
+            FailureDetector fd = new FailureDetector(memberList, dispatcher, conf);
             try {
                 fd.start();
-            } catch (Exception ex) {
-                ex.printStackTrace();
+            } catch (Exception e) {
+                e.printStackTrace();
                 System.exit(1);
             }
         });
-        e.submit(() -> {
-            Listener listener = new Listener(d, conf);
+
+        executorService.submit(() -> {
+            Listener listener = new Listener(dispatcher, conf);
             try {
                 listener.start();
-            } catch (Exception ex2) {
-                ex2.printStackTrace();
+            } catch (Exception e) {
+                e.printStackTrace();
                 System.exit(1);
             }
         });

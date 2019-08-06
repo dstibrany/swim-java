@@ -15,6 +15,10 @@ application {
     mainClassName = 'SwimJava'
 }
 
+run {
+    systemProperties System.getProperties()
+}
+
 test {
     useJUnitPlatform()
     testLogging {

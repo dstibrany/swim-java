@@ -5,7 +5,9 @@ public enum MessageType {
     PING(1),
     PING_REQ(2),
     ACK(3),
-    UNKNOWN(4);
+    JOIN(4),
+    JOIN_ACK(5),
+    UNKNOWN(99);
 
     private static final Map<Integer, MessageType> lookup = new HashMap<>();
 

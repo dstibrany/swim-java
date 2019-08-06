@@ -69,7 +69,6 @@ class DispatcherTest {
         int pingTimeout = 10;
         Member m1 = new Member(1234, InetAddress.getLoopbackAddress());
         Member m2 = new Member(1235, InetAddress.getLoopbackAddress());
-        ArgumentCaptor<Message> argument = ArgumentCaptor.forClass(Message.class);
         when(t.receive()).thenAnswer(i -> {
             Thread.sleep(pingTimeout + 10);
             return new Message(MessageType.ACK, m2, gossipList);
@@ -81,7 +80,7 @@ class DispatcherTest {
     }
 
     @Test
-    void testPingReq() throws TimeoutException, InterruptedException, ExecutionException {
+    void testPingReq() throws TimeoutException, InterruptedException {
         Member m1 = new Member(1234, InetAddress.getLoopbackAddress());
         Member m2 = new Member(1235, InetAddress.getLoopbackAddress());
         Member iProbeTarget = new Member(1236, InetAddress.getLoopbackAddress());

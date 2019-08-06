@@ -23,7 +23,8 @@ class MessageTest {
         gossipList = new ArrayList<>();
     }
 
-    private byte[] createMessageBytes(MessageType mt, Member indirectProbeMember) throws IOException {
+    private byte[] createMessageBytes(MessageType mt, Member indirectProbeMember, List<Gossip> gossipList)
+            throws IOException {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         DataOutputStream dos = new DataOutputStream(baos);
         dos.writeInt(mt.getValue());
@@ -31,26 +32,38 @@ class MessageTest {
             dos.write(indirectProbeMember.getAddress().getAddress());
             dos.writeInt(indirectProbeMember.getPort());
         }
-        dos.writeInt(0); // Gossip Messages
+        dos.writeInt(gossipList.size());
+        for (Gossip g : gossipList) {
+            dos.write(g.serialize());
+        }
         return baos.toByteArray();
     }
 
     @Test
     void deserializePing() throws IOException {
-        Message ping = Message.deserialize(createMessageBytes(MessageType.PING, null), member);
+        Message ping = Message.deserialize(
+                createMessageBytes(MessageType.PING, null, gossipList),
+                member
+        );
         assertEquals(MessageType.PING, ping.getMessageType());
     }
 
     @Test
     void deserializePingReq() throws IOException {
-        Message pingReq = Message.deserialize(createMessageBytes(MessageType.PING_REQ, indirectProbeMember), member);
+        Message pingReq = Message.deserialize(
+                createMessageBytes(MessageType.PING_REQ, indirectProbeMember, gossipList),
+                member
+        );
         assertEquals(MessageType.PING_REQ, pingReq.getMessageType());
         assertEquals(indirectProbeMember, pingReq.getIndirectProbeMember());
     }
 
     @Test
     void deserializeAck() throws IOException {
-        Message ack = Message.deserialize(createMessageBytes(MessageType.ACK, null), member);
+        Message ack = Message.deserialize(
+                createMessageBytes(MessageType.ACK, null, gossipList),
+                member
+        );
         assertEquals(MessageType.ACK, ack.getMessageType());
     }
 
@@ -63,12 +76,40 @@ class MessageTest {
     @Test
     void serializePing() throws IOException {
         Message ping = new Message(MessageType.PING, member, gossipList);
-        assertArrayEquals(createMessageBytes(MessageType.PING, null), ping.serialize());
+        assertArrayEquals(
+                createMessageBytes(MessageType.PING, null, gossipList),
+                ping.serialize()
+        );
     }
 
     @Test
     void serializePingReq() throws IOException {
         Message pingReq = new Message(MessageType.PING_REQ, member, indirectProbeMember, gossipList);
-        assertArrayEquals(createMessageBytes(MessageType.PING_REQ, indirectProbeMember), pingReq.serialize());
+        assertArrayEquals(
+                createMessageBytes(MessageType.PING_REQ, indirectProbeMember, gossipList),
+                pingReq.serialize()
+        );
+    }
+
+    @Test
+    void serializeGossip() throws IOException {
+        Member gossipMember = new Member(8888, InetAddress.getLoopbackAddress());
+        gossipList.add(new Gossip(GossipType.ALIVE, gossipMember, 0));
+        Message ping = new Message(MessageType.PING, member, indirectProbeMember, gossipList);
+        assertArrayEquals(
+                createMessageBytes(MessageType.PING, null, gossipList),
+                ping.serialize()
+        );
+    }
+
+    @Test
+    void deserializeGossip() throws IOException {
+        Member gossipMember = new Member(8888, InetAddress.getLoopbackAddress());
+        gossipList.add(new Gossip(GossipType.ALIVE, gossipMember, 0));
+        Message ping = Message.deserialize(
+                createMessageBytes(MessageType.PING, null, gossipList),
+                member
+        );
+        assertEquals(gossipList, ping.getGossipList());
     }
 }

@@ -44,6 +44,10 @@ public class Listener {
             case ACK:
                 logger.info("Received ACK from %s...dropping", message.getMember().toString());
                 break;
+            case JOIN:
+                logger.info("Received JOIN from %s", message.getMember().toString());
+                dispatcher.joinAck(message.getMember());
+                break;
             default:
                 logger.info("Dropping unknown message type");
                 break;

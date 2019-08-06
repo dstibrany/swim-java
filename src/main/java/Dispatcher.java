@@ -69,4 +69,27 @@ public class Dispatcher {
 
         if (ackCount == 0) throw new TimeoutException();
     }
+
+    void join(Member member, int timeout) throws TimeoutException, InterruptedException, ExecutionException {
+        Message join = new Message(MessageType.JOIN, member, disseminator.generateGossip());
+        Future<Message> f = executor.submit(() -> {
+            Transport t = tf.create();
+            t.send(join);
+            Message joinAck = t.receive();
+            disseminator.mergeGossip(joinAck.getGossipList());
+            t.close();
+            return joinAck;
+        });
+        f.get(timeout, TimeUnit.MILLISECONDS);
+    }
+
+    void joinAck(Member member) throws InterruptedException, ExecutionException {
+        Message joinAck = new Message(MessageType.JOIN_ACK, member, disseminator.generateJoinGossip());
+        Future<?> f = executor.submit(() -> {
+            Transport t = tf.create();
+            t.send(joinAck);
+            t.close();
+        });
+        f.get();
+    }
 }

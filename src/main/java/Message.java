@@ -40,6 +40,7 @@ public class Message {
             List<Gossip> gossipList = new ArrayList<>();
             for (int i = 0; i < numGossipMessages; i++) {
                 byte[] gossipData = new byte[Gossip.GOSSIP_SIZE];
+                dis.read(gossipData);
                 gossipList.add(Gossip.deserialize(gossipData));
             }
 
@@ -82,7 +83,7 @@ public class Message {
             }
             dos.writeInt(gossipList.size());
             for (Gossip g : gossipList) {
-                g.serialize();
+                dos.write(g.serialize());
             }
             return baos.toByteArray();
         } catch (IOException e) {
