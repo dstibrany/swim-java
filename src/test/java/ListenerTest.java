@@ -42,7 +42,7 @@ class ListenerTest {
         listener.listenerProtocol();
         inOrder.verify(dispatcher).receive();
         inOrder.verify(dispatcher).ack(sender);
-
+        verifyNoMoreInteractions(dispatcher);
     }
 
     @Test
@@ -55,6 +55,7 @@ class ListenerTest {
         inOrder.verify(dispatcher).receive();
         inOrder.verify(dispatcher).ping(iProbeTarget, config.getReqTimeout());
         inOrder.verify(dispatcher).ack(sender);
+        verifyNoMoreInteractions(dispatcher);
     }
 
     @Test
@@ -67,7 +68,30 @@ class ListenerTest {
 
         inOrder.verify(dispatcher).receive();
         inOrder.verify(dispatcher).ping(iProbeTarget, config.getReqTimeout());
-        verify(dispatcher, never()).ack(sender);
+        verifyNoMoreInteractions(dispatcher);
+    }
+
+    @Test
+    void testReceivedAck() throws InterruptedException, ExecutionException {
+        Message ack = new Message(MessageType.ACK, sender, gossipList);
+        when(dispatcher.receive()).thenReturn(ack);
+
+        listener.listenerProtocol();
+
+        verify(dispatcher).receive();
+        verifyNoMoreInteractions(dispatcher);
+    }
+
+    @Test
+    void testReceivedJoin() throws InterruptedException, ExecutionException {
+        Message join = new Message(MessageType.JOIN, sender, gossipList);
+        when(dispatcher.receive()).thenReturn(join);
+
+        listener.listenerProtocol();
+
+        inOrder.verify(dispatcher).receive();
+        inOrder.verify(dispatcher).joinAck(sender);
+        verifyNoMoreInteractions(dispatcher);
     }
 
 }

@@ -27,7 +27,7 @@ class DispatcherTest {
         conf = new Config();
         t = mock(NetTransport.class);
         disseminator = mock(Disseminator.class);
-        inOrder = inOrder(t);
+        inOrder = inOrder(t, disseminator);
         TransportFactory tfStub = new TransportFactory() {
             Transport create() {
                 return t;
@@ -45,20 +45,26 @@ class DispatcherTest {
     void testReceive() {
         Member m1 = new Member(1234, InetAddress.getLoopbackAddress());
         when(t.receive()).thenReturn(new Message(MessageType.PING, m1, gossipList));
+
         d.receive();
-        verify(t).receive();
+
+        inOrder.verify(t).receive();
+        inOrder.verify(disseminator).mergeGossip(gossipList);
     }
 
     @Test
     void testPing() throws TimeoutException, InterruptedException, ExecutionException {
         Member m1 = new Member(1234, InetAddress.getLoopbackAddress());
+        Message message = new Message(MessageType.ACK, m1, gossipList);
         ArgumentCaptor<Message> argument = ArgumentCaptor.forClass(Message.class);
-        when(t.receive()).thenReturn(new Message(MessageType.ACK, m1, gossipList));
+        when(t.receive()).thenReturn(message);
 
         d.ping(m1, 100);
 
+        inOrder.verify(disseminator).generateGossip();
         inOrder.verify(t).send(argument.capture());
         inOrder.verify(t).receive();
+        inOrder.verify(disseminator).mergeGossip(message.getGossipList());
         inOrder.verify(t).close();
         assertEquals(m1, argument.getValue().getMember());
         assertEquals(MessageType.PING, argument.getValue().getMessageType());
@@ -93,8 +99,10 @@ class DispatcherTest {
 
         d.pingReq(pingReqTargets, iProbeTarget, 100);
 
+        verify(disseminator).generateGossip();
         verify(t, times(pingReqTargets.size())).send(argument.capture());
         verify(t, times(pingReqTargets.size())).receive();
+        verify(disseminator, times(pingReqTargets.size())).mergeGossip(gossipList);
         verify(t, times(pingReqTargets.size())).close();
         List<Message> arguments = argument.getAllValues();
         List<Member> pingReqTargetsClone = new ArrayList<>(pingReqTargets);
@@ -132,9 +140,42 @@ class DispatcherTest {
 
         d.ack(m1);
 
+        inOrder.verify(disseminator).generateGossip();
         inOrder.verify(t).send(argument.capture());
         inOrder.verify(t).close();
         assertEquals(m1, argument.getValue().getMember());
         assertEquals(MessageType.ACK, argument.getValue().getMessageType());
+    }
+
+    @Test
+    void testJoin() throws InterruptedException, ExecutionException, TimeoutException {
+        Member m1 = new Member(1234, InetAddress.getLoopbackAddress());
+        Message message = new Message(MessageType.JOIN_ACK, m1, gossipList);
+        ArgumentCaptor<Message> argument = ArgumentCaptor.forClass(Message.class);
+        when(t.receive()).thenReturn(message);
+
+        d.join(m1, 100);
+
+        inOrder.verify(t).send(argument.capture());
+        inOrder.verify(t).receive();
+        inOrder.verify(disseminator).mergeGossip(message.getGossipList());
+        inOrder.verify(t).close();
+        assertEquals(m1, argument.getValue().getMember());
+        assertEquals(MessageType.JOIN, argument.getValue().getMessageType());
+
+    }
+
+    @Test
+    void testJoinWithTimeout() {
+        int joinTimeout = 10;
+        Member m1 = new Member(1234, InetAddress.getLoopbackAddress());
+        when(t.receive()).thenAnswer(i -> {
+            Thread.sleep(joinTimeout + 10);
+            return new Message(MessageType.JOIN_ACK, m1, gossipList);
+        });
+
+        assertThrows(TimeoutException.class, () -> {
+            d.join(m1, joinTimeout);
+        });
     }
 }

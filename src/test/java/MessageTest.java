@@ -110,6 +110,7 @@ class MessageTest {
                 createMessageBytes(MessageType.PING, null, gossipList),
                 member
         );
+
         assertEquals(gossipList, ping.getGossipList());
     }
 }

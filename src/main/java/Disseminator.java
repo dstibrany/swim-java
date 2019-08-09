@@ -24,7 +24,6 @@ public class Disseminator {
         for (Gossip g : gossipList) {
             switch (g.getGossipType()) {
                 case ALIVE:
-                    System.out.println("HERE!!!!!");
                     memberList.add(g.getMember());
                     break;
                 case SUSPECT:

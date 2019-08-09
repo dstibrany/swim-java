@@ -32,7 +32,6 @@ class FailureDetector {
             Thread.sleep(conf.getProtocolPeriod());
             return;
         }
-
         Member target = targetList.get(0);
 
         try {

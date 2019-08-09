@@ -1,5 +1,6 @@
 import java.io.*;
 import java.net.InetAddress;
+import java.util.Objects;
 
 public class Gossip {
     static final int GOSSIP_SIZE = 5000;
@@ -58,4 +59,15 @@ public class Gossip {
     Member getMember() {
         return member;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Gossip gossip = (Gossip) o;
+        return incarnationNumber == gossip.incarnationNumber &&
+                gossipType == gossip.gossipType &&
+                member.equals(gossip.member);
+    }
+
 }
