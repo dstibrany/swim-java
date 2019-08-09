@@ -1,4 +1,5 @@
 import com.typesafe.config.ConfigFactory;
+
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -59,9 +60,11 @@ class Config {
     int getReqTimeout() {
         return reqTimeout;
     }
+
     int getProtocolPeriod() {
         return protocolPeriod;
     }
+
     int getSubgroupSize() {
         return subgroupSize;
     }

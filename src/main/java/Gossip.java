@@ -1,6 +1,5 @@
 import java.io.*;
 import java.net.InetAddress;
-import java.util.Objects;
 
 public class Gossip {
     static final int GOSSIP_SIZE = 5000;

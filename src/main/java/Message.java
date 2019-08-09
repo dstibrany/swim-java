@@ -71,7 +71,7 @@ public class Message {
     }
 
     List<Gossip> getGossipList() {
-       return gossipList;
+        return gossipList;
     }
 
     byte[] serialize() {
