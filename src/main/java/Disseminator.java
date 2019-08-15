@@ -1,6 +1,30 @@
 import java.util.ArrayList;
 import java.util.List;
 
+/*
+
+On ALIVE:
+ if member exists:
+   add gossip to gossip list
+   unsuspect(member)
+ else:
+   add member to memberlist
+
+   add gossip to gossip list
+
+On Confirm:
+  remove member from memberlist
+  add gossip
+
+On Suspect
+mark member as suspect
+add gossip
+
+
+
+
+ */
+
 public class Disseminator {
     private List<Member> memberList;
 

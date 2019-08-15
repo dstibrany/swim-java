@@ -8,7 +8,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
 class FailureDetector {
-    private final Logger logger = LogManager.getFormatterLogger();
+    private final Logger logger = LogManager.getLogger();
     private List<Member> membershipList;
     private Dispatcher dispatcher;
     private Config conf;
@@ -35,11 +35,11 @@ class FailureDetector {
         Member target = targetList.get(0);
 
         try {
-            logger.info("Sending PING to %s", target.toString());
+            logger.info("Sending PING to {}", target.toString());
             dispatcher.ping(target, conf.getReqTimeout());
-            logger.info("Received ACK from %s", target.toString());
+            logger.info("Received ACK from {}", target.toString());
         } catch (TimeoutException e) {
-            logger.info("Timeout while waiting for ACK from %s", target.toString());
+            logger.info("Timeout while waiting for ACK from {}", target.toString());
             List<Member> pingReqtargets = getRandomMembers(conf.getSubgroupSize(), target);
             if (pingReqtargets.size() == 0) {
                 logger.info("There are no members to send a PING-REQ");
@@ -48,11 +48,11 @@ class FailureDetector {
                 return;
             }
             try {
-                logger.info("Sending PING-REQ to %d hosts", pingReqtargets.size());
+                logger.info("Sending PING-REQ to {} hosts", pingReqtargets.size());
                 dispatcher.pingReq(pingReqtargets, target, conf.getReqTimeout());
                 logger.info("Received ACK from Indirect Probes");
             } catch (TimeoutException e2) {
-                logger.info("Timeout waiting for Indirect Probes", target.toString());
+                logger.info("Timeout waiting for Indirect Probes");
                 removeMember(target);
             }
         }
@@ -77,7 +77,7 @@ class FailureDetector {
     }
 
     private void removeMember(Member target) {
-        logger.info("Dropping %s from membership list", target.toString());
+        logger.info("Dropping {} from membership list", target.toString());
         membershipList.remove(null);
     }
 }

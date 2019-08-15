@@ -6,7 +6,7 @@ import java.util.concurrent.TimeoutException;
 
 public class Listener {
 
-    private final Logger logger = LogManager.getFormatterLogger();
+    private final Logger logger = LogManager.getLogger();
     private Dispatcher dispatcher;
     private Config conf;
 
@@ -25,27 +25,27 @@ public class Listener {
         Message message = dispatcher.receive();
         switch (message.getMessageType()) {
             case PING:
-                logger.info("Received PING from %s", message.getMember().toString());
+                logger.info("Received PING from {}", message.getMember().toString());
                 dispatcher.ack(message.getMember());
-                logger.info("Sent ACK to %s", message.getMember().toString());
+                logger.info("Sent ACK to {}", message.getMember().toString());
                 break;
             case PING_REQ:
-                logger.info("Received PING-REQ from %s for %s",
+                logger.info("Received PING-REQ from {} for {}",
                         message.getMember().toString(),
                         message.getIndirectProbeMember().toString());
                 try {
                     dispatcher.ping(message.getIndirectProbeMember(), conf.getReqTimeout());
                     dispatcher.ack(message.getMember());
-                    logger.info("Sent ACK to %s", message.getMember().toString());
+                    logger.info("Sent ACK to {}", message.getMember().toString());
                 } catch (TimeoutException e) {
-                    logger.info("Timeout waiting for indirect probe to %s", message.getMember().toString());
+                    logger.info("Timeout waiting for indirect probe to {}", message.getMember().toString());
                 }
                 break;
             case ACK:
-                logger.info("Received ACK from %s...dropping", message.getMember().toString());
+                logger.info("Received ACK from {}...dropping", message.getMember().toString());
                 break;
             case JOIN:
-                logger.info("Received JOIN from %s", message.getMember().toString());
+                logger.info("Received JOIN from {}", message.getMember().toString());
                 dispatcher.joinAck(message.getMember());
                 break;
             default:

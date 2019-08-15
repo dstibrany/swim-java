@@ -1,3 +1,6 @@
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -11,6 +14,7 @@ public class SwimJava {
     }
 
     public static void main(String[] args) {
+        Logger logger = LogManager.getLogger();
         Config conf = new Config();
         self = new Member(conf.getPort(), conf.getAddress());
         List<Member> memberList = new ArrayList<>();
@@ -25,6 +29,7 @@ public class SwimJava {
             if (!seeds.contains(self)) {
                 Member seed = seeds.get(0); // TODO: round robin
                 try {
+                    logger.info("Joining cluster via seed node {}", seed.toString());
                     dispatcher.join(seed, conf.getReqTimeout());
                 } catch (Exception e) {
                     e.printStackTrace();
