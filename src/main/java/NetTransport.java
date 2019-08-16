@@ -29,7 +29,7 @@ public class NetTransport implements Transport {
 
     @Override
     public Message receive() {
-        byte[] buf = new byte[256];
+        byte[] buf = new byte[256]; // TODO: get a better size
         DatagramPacket packet = new DatagramPacket(buf, 0, buf.length);
         try {
             socket.receive(packet);

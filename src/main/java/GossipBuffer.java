@@ -5,15 +5,20 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class GossipBuffer {
-
-    Map<Integer, Gossip> bufferElements = new HashMap<>();
+    Map<Member, Gossip> bufferElements = new HashMap<>();
 
     List<Gossip> getItems(int n) {
         return null;
     }
 
     void mergeItem(Gossip g) {
+        Lock mutex = g.getMember().getMutex();
+        mutex.lock();
+        try {
 
+        } finally {
+            mutex.unlock();
+        }
     }
 
     void incrementCount() {

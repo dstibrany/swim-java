@@ -27,6 +27,7 @@ add gossip
 
 public class Disseminator {
     private List<Member> memberList;
+    private GossipBuffer gossipBuffer = new GossipBuffer();
 
     Disseminator(List<Member> memberList) {
         this.memberList = memberList;
@@ -45,18 +46,8 @@ public class Disseminator {
     }
 
     void mergeGossip(List<Gossip> gossipList) {
-        for (Gossip g : gossipList) {
-            switch (g.getGossipType()) {
-                case ALIVE:
-                    memberList.add(g.getMember());
-                    break;
-                case SUSPECT:
-                    break;
-                case CONFIRM:
-                    break;
-                default:
-                    break;
-            }
+        for (Gossip gossip : gossipList) {
+            gossipBuffer.mergeItem(gossip);
         }
     }
 

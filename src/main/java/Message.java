@@ -30,7 +30,7 @@ public class Message {
             messageType = MessageType.getType(dis.readInt());
             Member iProbeMember = null;
             if (messageType == MessageType.PING_REQ) {
-                byte[] address = new byte[4];
+                byte[] address = new byte[Integer.BYTES];
                 int bytesRead = dis.read(address);
                 int port = dis.readInt();
                 iProbeMember = new Member(port, InetAddress.getByAddress(address));
@@ -39,7 +39,7 @@ public class Message {
             int numGossipMessages = dis.readInt();
             List<Gossip> gossipList = new ArrayList<>();
             for (int i = 0; i < numGossipMessages; i++) {
-                byte[] gossipData = new byte[Gossip.GOSSIP_SIZE];
+                byte[] gossipData = new byte[Gossip.BYTES];
                 dis.read(gossipData);
                 gossipList.add(Gossip.deserialize(gossipData));
             }

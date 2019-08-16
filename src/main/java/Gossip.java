@@ -1,8 +1,9 @@
 import java.io.*;
 import java.net.InetAddress;
+import java.util.Objects;
 
 public class Gossip {
-    static final int GOSSIP_SIZE = 5000;
+    static final int BYTES = Integer.BYTES + GossipType.BYTES + Member.BYTES;
     private GossipType gossipType;
     private Member member;
     private int incarnationNumber;
@@ -13,13 +14,15 @@ public class Gossip {
         this.incarnationNumber = incarnationNumber;
     }
 
+
+
     static Gossip deserialize(byte[] data) {
         GossipType gossipType;
         Gossip gossip;
 
         try (DataInputStream dis = new DataInputStream(new ByteArrayInputStream(data))) {
             gossipType = GossipType.getType(dis.readInt());
-            byte[] address = new byte[4];
+            byte[] address = new byte[Integer.BYTES];
             int bytesRead = dis.read(address);
             int port = dis.readInt();
             int incarnationNumber = dis.readInt();
@@ -69,4 +72,8 @@ public class Gossip {
                 member.equals(gossip.member);
     }
 
+    @Override
+    public int hashCode() {
+        return Objects.hash(gossipType, member, incarnationNumber);
+    }
 }

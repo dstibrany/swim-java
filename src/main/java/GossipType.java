@@ -1,7 +1,7 @@
 import java.util.HashMap;
 import java.util.Map;
 
-public enum GossipType {
+enum GossipType {
     ALIVE(1),
     SUSPECT(2),
     CONFIRM(3),
@@ -17,11 +17,13 @@ public enum GossipType {
 
     private final int value;
 
+    static final int BYTES = Integer.BYTES;
+
     GossipType(int value) {
         this.value = value;
     }
 
-    public static GossipType getType(int value) {
+    static GossipType getType(int value) {
         GossipType type = lookup.get(value);
         if (type == null) {
             return GossipType.UNKNOWN;
@@ -30,7 +32,7 @@ public enum GossipType {
         }
     }
 
-    public int getValue() {
+    int getValue() {
         return value;
     }
 }
