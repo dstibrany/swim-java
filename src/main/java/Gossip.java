@@ -61,8 +61,7 @@ public class Gossip {
     }
 
     boolean overrides(Gossip other) {
-        if (other == null) return true;
-        return false;
+        return other == null;
     }
 
     @Override

@@ -2,7 +2,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.*;
 
 public class SwimJava {
@@ -15,6 +14,13 @@ public class SwimJava {
 
     static Member getSelf() {
         return self;
+    }
+
+    public static void main(String[] args) throws InterruptedException, ExecutionException {
+        init();
+        join();
+        startListener();
+        startFailureDetector();
     }
 
     private static void init() {
@@ -68,12 +74,5 @@ public class SwimJava {
                 System.exit(1);
             }
         });
-    }
-
-    public static void main(String[] args) throws InterruptedException, ExecutionException {
-        init();
-        join();
-        startListener();
-        startFailureDetector();
     }
 }

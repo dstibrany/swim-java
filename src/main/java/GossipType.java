@@ -8,6 +8,7 @@ enum GossipType {
     JOIN(4),
     UNKNOWN(99);
 
+    static final int BYTES = Integer.BYTES;
     private static final Map<Integer, GossipType> lookup = new HashMap<>();
 
     static {
@@ -17,8 +18,6 @@ enum GossipType {
     }
 
     private final int value;
-
-    static final int BYTES = Integer.BYTES;
 
     GossipType(int value) {
         this.value = value;

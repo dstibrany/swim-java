@@ -1,7 +1,6 @@
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 public class Disseminator {
     private List<Member> memberList;
