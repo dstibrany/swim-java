@@ -4,6 +4,7 @@ import org.apache.logging.log4j.Logger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
@@ -43,7 +44,7 @@ class FailureDetector {
             List<Member> pingReqtargets = getRandomMembers(conf.getSubgroupSize(), target);
             if (pingReqtargets.size() == 0) {
                 logger.info("There are no members to send a PING-REQ");
-                removeMember(target);
+                suspectMember(target);
                 Thread.sleep(conf.getProtocolPeriod());
                 return;
             }
@@ -53,7 +54,7 @@ class FailureDetector {
                 logger.info("Received ACK from Indirect Probes");
             } catch (TimeoutException e2) {
                 logger.info("Timeout waiting for Indirect Probes");
-                removeMember(target);
+                suspectMember(target);
             }
         }
         Thread.sleep(conf.getProtocolPeriod());
@@ -76,8 +77,8 @@ class FailureDetector {
         return randomMembers;
     }
 
-    private void removeMember(Member target) {
-        logger.info("Dropping {} from membership list", target.toString());
-        membershipList.remove(null);
+    private void suspectMember(Member target) {
+        logger.info("Marking {} as suspected", target.toString());
+        target.suspect();
     }
 }

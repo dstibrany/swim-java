@@ -1,4 +1,6 @@
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.*;
 
@@ -71,7 +73,10 @@ public class Dispatcher {
     }
 
     void join(Member member, int timeout) throws TimeoutException, InterruptedException, ExecutionException {
-        Message join = new Message(MessageType.JOIN, member, disseminator.generateGossip());
+        Message join = new Message(
+                MessageType.JOIN,
+                member,
+                Collections.singletonList(new Gossip(GossipType.JOIN, SwimJava.getSelf(), 0)));
         Future<Message> f = executor.submit(() -> {
             Transport t = tf.create();
             t.send(join);
@@ -84,7 +89,7 @@ public class Dispatcher {
     }
 
     void joinAck(Member member) throws InterruptedException, ExecutionException {
-        Message joinAck = new Message(MessageType.JOIN_ACK, member, disseminator.generateJoinGossip());
+        Message joinAck = new Message(MessageType.JOIN_ACK, member, disseminator.sendMemberList());
         Future<?> f = executor.submit(() -> {
             Transport t = tf.create();
             t.send(joinAck);

@@ -5,6 +5,7 @@ enum GossipType {
     ALIVE(1),
     SUSPECT(2),
     CONFIRM(3),
+    JOIN(4),
     UNKNOWN(99);
 
     private static final Map<Integer, GossipType> lookup = new HashMap<>();

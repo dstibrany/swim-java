@@ -1,36 +1,36 @@
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class GossipBuffer {
-    Map<Member, Gossip> bufferElements = new HashMap<>();
+class GossipBuffer {
+    private final Map<Member, Gossip> bufferElements = new ConcurrentHashMap<>();
+    private final Map<Member, Lock> mutexes = new ConcurrentHashMap<>();
 
     List<Gossip> getItems(int n) {
         return null;
     }
 
-    void mergeItem(Gossip g) {
-        Lock mutex = g.getMember().getMutex();
+    boolean mergeItem(Gossip gossip) {
+        boolean merged = false;
+        Lock mutex = getMutex(gossip.getMember());
         mutex.lock();
         try {
-
+            if (gossip.overrides(bufferElements.get(gossip.getMember()))) {
+                bufferElements.put(gossip.getMember(), gossip);
+                merged = true;
+            }
         } finally {
             mutex.unlock();
         }
+
+        return merged;
     }
 
-    void incrementCount() {
-
+    private Lock getMutex(Member m) {
+        Lock newLock = new ReentrantLock();
+        Lock mutex = mutexes.putIfAbsent(m, newLock);
+        return (mutex == null) ? newLock : mutex;
     }
-
-    static class GossipBufferElement {
-        Gossip gossip;
-        Lock lock = new ReentrantLock();
-
-
-    }
-
-
 }

@@ -1,13 +1,12 @@
 import java.net.InetAddress;
 import java.util.Objects;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class Member {
     static final int BYTES = Integer.BYTES + Integer.BYTES;
     private int port;
     private InetAddress address;
-    private Lock mutex = new ReentrantLock();
+    private AtomicBoolean suspected = new AtomicBoolean(false);
 
     Member(int port, InetAddress address) {
         this.address = address;
@@ -22,8 +21,12 @@ public class Member {
         return address;
     }
 
-    Lock getMutex() {
-        return mutex;
+    void suspect() {
+        suspected.set(true);
+    }
+
+    void alive() {
+        suspected.set(false);
     }
 
     @Override

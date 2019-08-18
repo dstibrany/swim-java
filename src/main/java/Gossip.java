@@ -14,8 +14,6 @@ public class Gossip {
         this.incarnationNumber = incarnationNumber;
     }
 
-
-
     static Gossip deserialize(byte[] data) {
         GossipType gossipType;
         Gossip gossip;
@@ -60,6 +58,11 @@ public class Gossip {
 
     Member getMember() {
         return member;
+    }
+
+    boolean overrides(Gossip other) {
+        if (other == null) return true;
+        return false;
     }
 
     @Override
