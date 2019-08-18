@@ -60,8 +60,8 @@ public class Gossip {
         return member;
     }
 
-    boolean overrides(Gossip other) {
-        return other == null;
+    int getIncarnationNumber() {
+        return incarnationNumber;
     }
 
     @Override

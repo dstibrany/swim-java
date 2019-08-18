@@ -25,6 +25,7 @@ class FailureDetector {
         }
     }
 
+    //
     void runProtocol() throws InterruptedException, ExecutionException {
         List<Member> targetList = getRandomMembers(1, null);
         if (targetList.size() == 0) {
