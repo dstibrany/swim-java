@@ -162,7 +162,6 @@ class DispatcherTest {
         inOrder.verify(t).close();
         assertEquals(m1, argument.getValue().getMember());
         assertEquals(MessageType.JOIN, argument.getValue().getMessageType());
-
     }
 
     @Test
@@ -177,5 +176,19 @@ class DispatcherTest {
         assertThrows(TimeoutException.class, () -> {
             d.join(m1, joinTimeout);
         });
+    }
+
+    @Test
+    void testJoinAck() throws InterruptedException, ExecutionException  {
+        Member m1 = new Member(1234, InetAddress.getLoopbackAddress());
+        ArgumentCaptor<Message> argument = ArgumentCaptor.forClass(Message.class);
+
+        d.joinAck(m1);
+
+        inOrder.verify(disseminator).sendMemberList();
+        inOrder.verify(t).send(argument.capture());
+        inOrder.verify(t).close();
+        assertEquals(m1, argument.getValue().getMember());
+        assertEquals(MessageType.JOIN_ACK, argument.getValue().getMessageType());
     }
 }
