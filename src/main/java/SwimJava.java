@@ -9,7 +9,7 @@ public class SwimJava {
     private static Logger logger;
     private static ExecutorService executorService;
     private static Config conf;
-    private static List<Member> memberList;
+    private static MemberList memberList;
     private static Dispatcher dispatcher;
 
     static Member getSelf() {
@@ -28,9 +28,9 @@ public class SwimJava {
         logger = LogManager.getLogger();
         conf = new Config();
         self = new Member(conf.getPort(), conf.getAddress());
-        memberList = new CopyOnWriteArrayList<>();
+        memberList = new MemberList();
         memberList.add(self);
-        Disseminator disseminator = new Disseminator(memberList);
+        Disseminator disseminator = new Disseminator(memberList, conf);
         dispatcher = new Dispatcher(new TransportFactory(), disseminator, conf);
     }
 
@@ -40,7 +40,7 @@ public class SwimJava {
             if (!seeds.contains(self)) {
                 Member seed = seeds.get(0); // TODO: round robin
                 try {
-                    logger.info("Joining cluster via seed node {}", seed.toString());
+                    logger.info("Joining cluster via seed node {}", seed);
                     dispatcher.join(seed, conf.getReqTimeout());
                 } catch (Exception e) {
                     e.printStackTrace();

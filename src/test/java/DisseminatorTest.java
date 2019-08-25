@@ -10,18 +10,15 @@ import static org.mockito.Mockito.*;
 
 class DisseminatorTest {
 
-    private Member m1;
     private Disseminator disseminator;
-
-    @SuppressWarnings("unchecked")
-    private List<Member> memberList = (List<Member>) mock(List.class);
+    private MemberList memberList;
     private Member member;
 
     @BeforeEach
     void setUp() {
         member = mock(Member.class);
-        m1 = new Member(5555, InetAddress.getLoopbackAddress());
-        disseminator = new Disseminator(memberList);
+        memberList = mock(MemberList.class);
+        disseminator = new Disseminator(memberList, new Config());
     }
 
     @Test

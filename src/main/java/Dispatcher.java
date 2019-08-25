@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.*;
@@ -23,6 +24,7 @@ public class Dispatcher {
 
     void ping(Member member, int timeout) throws TimeoutException, InterruptedException, ExecutionException {
         Message ping = new Message(MessageType.PING, member, disseminator.generateGossip());
+
         Future<Message> f = executor.submit(() -> {
             Transport t = tf.create();
             t.send(ping);
@@ -31,22 +33,26 @@ public class Dispatcher {
             t.close();
             return ack;
         });
+
         f.get(timeout, TimeUnit.MILLISECONDS);
     }
 
     void ack(Member member) throws InterruptedException, ExecutionException {
         Message ack = new Message(MessageType.ACK, member, disseminator.generateGossip());
+
         Future<?> f = executor.submit(() -> {
             Transport t = tf.create();
             t.send(ack);
             t.close();
         });
+
         f.get();
     }
 
     void pingReq(List<Member> members, Member iProbeTarget, int timeout) throws TimeoutException, InterruptedException {
         List<Callable<Message>> pingRequests = new ArrayList<>();
         List<Gossip> gossipList = disseminator.generateGossip();
+
         for (Member member : members) {
             pingRequests.add(() -> {
                 Transport t = tf.create();
@@ -67,28 +73,28 @@ public class Dispatcher {
                 ackCount++;
             }
         }
-
         if (ackCount == 0) throw new TimeoutException();
     }
 
     void join(Member member, int timeout) throws TimeoutException, InterruptedException, ExecutionException {
-        Message join = new Message(
-                MessageType.JOIN,
-                member,
-                Collections.singletonList(new Gossip(GossipType.JOIN, SwimJava.getSelf(), 0)));
+        disseminator.mergeGossip(Collections.singletonList(
+                new Gossip(GossipType.JOIN, SwimJava.getSelf(), 0)));
+        Message join = new Message(MessageType.JOIN, member, disseminator.generateGossip());
+
         Future<Message> f = executor.submit(() -> {
             Transport t = tf.create();
             t.send(join);
             Message joinAck = t.receive();
-            disseminator.mergeGossip(joinAck.getGossipList());
+            disseminator.mergeMemberList(joinAck.getGossipList());
             t.close();
             return joinAck;
         });
+
         f.get(timeout, TimeUnit.MILLISECONDS);
     }
 
     void joinAck(Member member) throws InterruptedException, ExecutionException {
-        Message joinAck = new Message(MessageType.JOIN_ACK, member, disseminator.sendMemberList());
+        Message joinAck = new Message(MessageType.JOIN_ACK, member, disseminator.generateMemberList());
         Future<?> f = executor.submit(() -> {
             Transport t = tf.create();
             t.send(joinAck);

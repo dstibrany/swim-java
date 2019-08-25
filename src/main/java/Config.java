@@ -6,12 +6,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 class Config {
-    private int port;
-    private InetAddress address;
-    private List<Member> seeds = new ArrayList<>();
-    private int reqTimeout;
-    private int protocolPeriod;
-    private int subgroupSize;
+    private final int maxGossipPerMessage;
+    private final int port;
+    private  InetAddress address;
+    private final List<Member> seeds = new ArrayList<>();
+    private final int reqTimeout;
+    private final int protocolPeriod;
+    private final int subgroupSize;
 
     Config() {
         this(ConfigFactory.load());
@@ -43,6 +44,7 @@ class Config {
         reqTimeout = conf.getInt("swim-java.request_timeout");
         protocolPeriod = conf.getInt("swim-java.protocol_period");
         subgroupSize = conf.getInt("swim-java.subgroup_size");
+        maxGossipPerMessage = conf.getInt("swim-java.max_gossip_per_message");
     }
 
     int getPort() {
@@ -67,5 +69,9 @@ class Config {
 
     int getSubgroupSize() {
         return subgroupSize;
+    }
+
+    public int getMaxGossipPerMessage() {
+        return maxGossipPerMessage;
     }
 }

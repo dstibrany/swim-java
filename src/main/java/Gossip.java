@@ -1,12 +1,16 @@
 import java.io.*;
 import java.net.InetAddress;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
-public class Gossip {
+public class Gossip implements Comparable<Gossip> {
     static final int BYTES = Integer.BYTES + GossipType.BYTES + Member.BYTES;
-    private GossipType gossipType;
-    private Member member;
-    private int incarnationNumber;
+    private final GossipType gossipType;
+    private final Member member;
+    private final int incarnationNumber;
+    private AtomicInteger piggybackCount = new AtomicInteger(0);
+    private AtomicBoolean expired = new AtomicBoolean(false);
 
     Gossip(GossipType gossipType, Member member, int incarnationNumber) {
         this.gossipType = gossipType;
@@ -44,6 +48,9 @@ public class Gossip {
             dos.write(member.getAddress().getAddress());
             dos.writeInt(member.getPort());
             dos.writeInt(incarnationNumber);
+
+            piggybackCount.incrementAndGet();
+
             return baos.toByteArray();
         } catch (IOException e) {
             e.printStackTrace();
@@ -64,6 +71,15 @@ public class Gossip {
         return incarnationNumber;
     }
 
+    boolean isExpired() {
+        return expired.get();
+    }
+
+    @Override
+    public int compareTo(Gossip o) {
+        return incarnationNumber - o.getIncarnationNumber();
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -77,5 +93,14 @@ public class Gossip {
     @Override
     public int hashCode() {
         return Objects.hash(gossipType, member, incarnationNumber);
+    }
+
+    @Override
+    public String toString() {
+        return "Gossip{" +
+                "gossipType=" + gossipType +
+                ", member=" + member +
+                ", incarnationNumber=" + incarnationNumber +
+                '}';
     }
 }

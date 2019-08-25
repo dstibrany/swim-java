@@ -4,7 +4,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InOrder;
 
 import java.net.InetAddress;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -18,8 +17,8 @@ class FailureDetectorTest {
     private FailureDetector fd;
     private FailureDetector fdSpy;
     private InOrder inOrder;
-    private List<Member> memberList;
-    private List<Member> memberListSpy;
+    private MemberList memberList;
+    private MemberList memberListSpy;
     private Config config;
 
     @BeforeEach
@@ -29,7 +28,7 @@ class FailureDetectorTest {
                 .withFallback(ConfigFactory.defaultReference());
         config = new Config(mergedConf);
         dispatcher = mock(Dispatcher.class);
-        memberList = new ArrayList<>();
+        memberList = new MemberList();
         memberListSpy = spy(memberList);
         fd = new FailureDetector(memberList, dispatcher, config);
         fdSpy = spy(fd);
@@ -93,7 +92,7 @@ class FailureDetectorTest {
         Member m3 = new Member(port++, InetAddress.getLoopbackAddress());
         Member m4 = new Member(port++, InetAddress.getLoopbackAddress());
         Member m5 = new Member(port++, InetAddress.getLoopbackAddress());
-        List<Member> membershipList = Arrays.asList(m1, m2, m3, m4, m5);
+        MemberList membershipList = new MemberList(Arrays.asList(m1, m2, m3, m4, m5));
         int originalSize = membershipList.size();
 
         FailureDetector fd = new FailureDetector(membershipList, dispatcher, config);
@@ -108,9 +107,9 @@ class FailureDetectorTest {
     @Test
     void testGetRandomMembersDoesNotReturnSelf() {
         Member m1 = new Member(1234, InetAddress.getLoopbackAddress());
-        List<Member> membershiplist = Arrays.asList(SwimJava.getSelf(), m1);
+        MemberList memberList = new MemberList(Arrays.asList(SwimJava.getSelf(), m1));
 
-        FailureDetector fd = new FailureDetector(membershiplist, dispatcher, config);
+        FailureDetector fd = new FailureDetector(memberList, dispatcher, config);
         for (int i = 0; i < 100; i++) {
             List<Member> randomMembers = fd.getRandomMembers(1, null);
             assertEquals(m1, randomMembers.get(0));
@@ -121,9 +120,9 @@ class FailureDetectorTest {
     void testGetRandomMembersDoesNotReturnTargetToExclude() {
         Member m1 = new Member(1234, InetAddress.getLoopbackAddress());
         Member m2 = new Member(1235, InetAddress.getLoopbackAddress());
-        List<Member> membershipList = Arrays.asList(SwimJava.getSelf(), m1, m2);
+        MemberList memberList = new MemberList(Arrays.asList(SwimJava.getSelf(), m1, m2));
 
-        FailureDetector fd = new FailureDetector(membershipList, dispatcher, config);
+        FailureDetector fd = new FailureDetector(memberList, dispatcher, config);
         for (int i = 0; i < 10; i++) {
             List<Member> randomMembers = fd.getRandomMembers(1, m1);
             assertEquals(m2, randomMembers.get(0));

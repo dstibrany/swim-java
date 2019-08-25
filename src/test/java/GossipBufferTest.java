@@ -26,7 +26,7 @@ class GossipBufferTest {
     @Test
     void itemMerged() {
         @SuppressWarnings("unchecked")
-        Map<Member, Gossip> bufferElements = (ConcurrentHashMap<Member, Gossip>) mock(ConcurrentHashMap.class);
+        ConcurrentHashMap<Member, Gossip> bufferElements =  mock(ConcurrentHashMap.class);
         GossipBuffer gossipBuffer = new GossipBuffer(bufferElements);
         Member m1 = new Member(5555, InetAddress.getLoopbackAddress());
         Gossip alive = new Gossip(GossipType.ALIVE, m1, 0);
@@ -40,7 +40,7 @@ class GossipBufferTest {
     @Test
     void itemNotMerged() {
         @SuppressWarnings("unchecked")
-        Map<Member, Gossip> bufferElements = (ConcurrentHashMap<Member, Gossip>) spy(ConcurrentHashMap.class);
+        ConcurrentHashMap<Member, Gossip> bufferElements = spy(ConcurrentHashMap.class);
         GossipBuffer gossipBuffer = new GossipBuffer(bufferElements);
         Member m1 = new Member(5555, InetAddress.getLoopbackAddress());
         Gossip alive_inc0 = new Gossip(GossipType.ALIVE, m1, 0);

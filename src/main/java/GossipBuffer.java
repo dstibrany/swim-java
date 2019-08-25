@@ -1,17 +1,23 @@
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
-import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 class GossipBuffer {
-    private final Map<Member, Gossip> bufferElements;
+    private final ConcurrentHashMap<Member, Gossip> bufferElements;
 
-    GossipBuffer(Map<Member, Gossip> bufferElements) {
+    GossipBuffer(ConcurrentHashMap<Member, Gossip> bufferElements) {
         this.bufferElements = bufferElements;
     }
 
-    // TODO: get this working
     List<Gossip> getItems(int n) {
-        return new ArrayList<>(bufferElements.values());
+        return bufferElements.values()
+                .stream()
+                .filter(g -> !g.isExpired())
+                .sorted()
+                .limit(n)
+                .collect(Collectors.toList());
     }
 
     boolean mergeItem(Gossip gossip) {
@@ -24,7 +30,13 @@ class GossipBuffer {
     }
 
     boolean overrides(Gossip g1, Gossip g2) {
+        // gossip buffer slot is empty
         if (g2 == null) return true;
+
+        // we've already have this item
+        if (g1.equals(g2)) return false;
+
+        if (g2.isExpired()) return true;
 
         if (!g1.getMember().equals(g2.getMember())) {
             throw new RuntimeException("GossipBuffer.overrides must be called on the same Member");

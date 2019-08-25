@@ -9,12 +9,12 @@ import java.util.concurrent.TimeoutException;
 
 class FailureDetector {
     private final Logger logger = LogManager.getLogger();
-    private List<Member> membershipList;
+    private MemberList memberList;
     private Dispatcher dispatcher;
     private Config conf;
 
-    FailureDetector(List<Member> membershipList, Dispatcher dispatcher, Config conf) {
-        this.membershipList = membershipList;
+    FailureDetector(MemberList memberList, Dispatcher dispatcher, Config conf) {
+        this.memberList = memberList;
         this.dispatcher = dispatcher;
         this.conf = conf;
     }
@@ -25,8 +25,8 @@ class FailureDetector {
         }
     }
 
-    //
     void runProtocol() throws InterruptedException, ExecutionException {
+        logger.debug("MemberList: {}", memberList);
         List<Member> targetList = getRandomMembers(1, null);
         if (targetList.size() == 0) {
             logger.info("There are no members to PING");
@@ -36,11 +36,11 @@ class FailureDetector {
         Member target = targetList.get(0);
 
         try {
-            logger.info("Sending PING to {}", target.toString());
+            logger.info("Sending PING to {}", target);
             dispatcher.ping(target, conf.getReqTimeout());
-            logger.info("Received ACK from {}", target.toString());
+            logger.info("Received ACK from {}", target);
         } catch (TimeoutException e) {
-            logger.info("Timeout while waiting for ACK from {}", target.toString());
+            logger.info("Timeout while waiting for ACK from {}", target);
             List<Member> pingReqtargets = getRandomMembers(conf.getSubgroupSize(), target);
             if (pingReqtargets.size() == 0) {
                 logger.info("There are no members to send a PING-REQ");
@@ -63,7 +63,7 @@ class FailureDetector {
     List<Member> getRandomMembers(int k, Member targetToExclude) {
         Random rand = new Random();
         List<Member> randomMembers = new ArrayList<>();
-        List<Member> selectionList = new ArrayList<>(membershipList);
+        List<Member> selectionList = memberList.getList();
         selectionList.remove(SwimJava.getSelf());
         selectionList.remove(targetToExclude);
 
@@ -78,7 +78,8 @@ class FailureDetector {
     }
 
     private void suspectMember(Member target) {
-        logger.info("Marking {} as suspected", target.toString());
+        logger.info("Marking {} as suspected", target);
         target.suspect();
+        // TODO: generate suspect gossip
     }
 }

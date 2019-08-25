@@ -158,7 +158,7 @@ class DispatcherTest {
 
         inOrder.verify(t).send(argument.capture());
         inOrder.verify(t).receive();
-        inOrder.verify(disseminator).mergeGossip(message.getGossipList());
+        inOrder.verify(disseminator).mergeMemberList(message.getGossipList());
         inOrder.verify(t).close();
         assertEquals(m1, argument.getValue().getMember());
         assertEquals(MessageType.JOIN, argument.getValue().getMessageType());
@@ -185,7 +185,7 @@ class DispatcherTest {
 
         d.joinAck(m1);
 
-        inOrder.verify(disseminator).sendMemberList();
+        inOrder.verify(disseminator).generateMemberList();
         inOrder.verify(t).send(argument.capture());
         inOrder.verify(t).close();
         assertEquals(m1, argument.getValue().getMember());

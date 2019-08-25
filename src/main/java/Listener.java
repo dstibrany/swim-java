@@ -25,27 +25,27 @@ public class Listener {
         Message message = dispatcher.receive();
         switch (message.getMessageType()) {
             case PING:
-                logger.info("Received PING from {}", message.getMember().toString());
+                logger.info("Received PING from {}", message.getMember());
                 dispatcher.ack(message.getMember());
-                logger.info("Sent ACK to {}", message.getMember().toString());
+                logger.info("Sent ACK to {}", message.getMember());
                 break;
             case PING_REQ:
                 logger.info("Received PING-REQ from {} for {}",
-                        message.getMember().toString(),
-                        message.getIndirectProbeMember().toString());
+                        message.getMember(),
+                        message.getIndirectProbeMember());
                 try {
                     dispatcher.ping(message.getIndirectProbeMember(), conf.getReqTimeout());
                     dispatcher.ack(message.getMember());
-                    logger.info("Sent ACK to {}", message.getMember().toString());
+                    logger.info("Sent ACK to {}", message.getMember());
                 } catch (TimeoutException e) {
-                    logger.info("Timeout waiting for indirect probe to {}", message.getMember().toString());
+                    logger.info("Timeout waiting for indirect probe to {}", message.getMember());
                 }
                 break;
             case ACK:
-                logger.info("Received ACK from {}...dropping", message.getMember().toString());
+                logger.info("Received ACK from {}...dropping", message.getMember());
                 break;
             case JOIN:
-                logger.info("Received JOIN from {}", message.getMember().toString());
+                logger.info("Received JOIN from {}", message.getMember());
                 dispatcher.joinAck(message.getMember());
                 break;
             default:

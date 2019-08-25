@@ -7,6 +7,7 @@ public class Member {
     private int port;
     private InetAddress address;
     private AtomicBoolean suspected = new AtomicBoolean(false);
+    private int incarnationNumber = 0;
 
     Member(int port, InetAddress address) {
         this.address = address;
@@ -29,9 +30,16 @@ public class Member {
         suspected.set(false);
     }
 
+    int getIncarnationNumber() {
+        return incarnationNumber;
+    }
+
     @Override
     public String toString() {
-        return address.getHostAddress() + ":" + port;
+        return "Member{" +
+                "port=" + port +
+                ", address=" + address.getHostAddress() +
+                '}';
     }
 
     @Override
