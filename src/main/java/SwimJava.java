@@ -11,6 +11,7 @@ public class SwimJava {
     private static Config conf;
     private static MemberList memberList;
     private static Dispatcher dispatcher;
+    private static Disseminator disseminator;
 
     static Member getSelf() {
         return self;
@@ -30,7 +31,7 @@ public class SwimJava {
         self = new Member(conf.getPort(), conf.getAddress());
         memberList = new MemberList();
         memberList.add(self);
-        Disseminator disseminator = new Disseminator(memberList, conf);
+        disseminator = new Disseminator(memberList, conf);
         dispatcher = new Dispatcher(new TransportFactory(), disseminator, conf);
     }
 
@@ -66,7 +67,7 @@ public class SwimJava {
 
     private static void startFailureDetector() {
         executorService.submit(() -> {
-            FailureDetector fd = new FailureDetector(memberList, dispatcher, conf);
+            FailureDetector fd = new FailureDetector(memberList, dispatcher, disseminator, conf);
             try {
                 fd.start();
             } catch (Exception e) {

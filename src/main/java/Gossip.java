@@ -75,6 +75,14 @@ public class Gossip implements Comparable<Gossip> {
         return expired.get();
     }
 
+    void setExpired() {
+        expired.set(true);
+    }
+
+    int getPiggyBackCount() {
+        return piggybackCount.get();
+    }
+
     @Override
     public int compareTo(Gossip o) {
         return incarnationNumber - o.getIncarnationNumber();

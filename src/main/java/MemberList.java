@@ -74,4 +74,15 @@ public class MemberList {
         return memberList.size();
     }
 
+    @Override
+    public String toString() {
+        StringBuilder output = new StringBuilder();
+        output.append("MemberList[");
+        for (Member m : memberList) {
+            output.append(m);
+            output.append(", ");
+        }
+        output.append("]");
+        return output.toString();
+    }
 }

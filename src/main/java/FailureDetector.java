@@ -9,14 +9,16 @@ import java.util.concurrent.TimeoutException;
 
 class FailureDetector {
     private final Logger logger = LogManager.getLogger();
-    private MemberList memberList;
-    private Dispatcher dispatcher;
-    private Config conf;
+    private final Disseminator disseminator;
+    private final MemberList memberList;
+    private final Dispatcher dispatcher;
+    private final Config conf;
 
-    FailureDetector(MemberList memberList, Dispatcher dispatcher, Config conf) {
+    FailureDetector(MemberList memberList, Dispatcher dispatcher, Disseminator disseminator, Config conf) {
         this.memberList = memberList;
         this.dispatcher = dispatcher;
         this.conf = conf;
+        this.disseminator = disseminator;
     }
 
     void start() throws InterruptedException, ExecutionException {
@@ -26,7 +28,7 @@ class FailureDetector {
     }
 
     void runProtocol() throws InterruptedException, ExecutionException {
-        logger.debug("MemberList: {}", memberList);
+        logger.debug("{}", memberList);
         List<Member> targetList = getRandomMembers(1, null);
         if (targetList.size() == 0) {
             logger.info("There are no members to PING");
@@ -44,7 +46,7 @@ class FailureDetector {
             List<Member> pingReqtargets = getRandomMembers(conf.getSubgroupSize(), target);
             if (pingReqtargets.size() == 0) {
                 logger.info("There are no members to send a PING-REQ");
-                suspectMember(target);
+                disseminator.suspect(target);
                 Thread.sleep(conf.getProtocolPeriod());
                 return;
             }
@@ -54,7 +56,7 @@ class FailureDetector {
                 logger.info("Received ACK from Indirect Probes");
             } catch (TimeoutException e2) {
                 logger.info("Timeout waiting for Indirect Probes");
-                suspectMember(target);
+                disseminator.suspect(target);
             }
         }
         Thread.sleep(conf.getProtocolPeriod());
@@ -78,8 +80,6 @@ class FailureDetector {
     }
 
     private void suspectMember(Member target) {
-        logger.info("Marking {} as suspected", target);
-        target.suspect();
-        // TODO: generate suspect gossip
+
     }
 }

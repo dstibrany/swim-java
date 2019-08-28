@@ -1,13 +1,14 @@
 import java.net.InetAddress;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class Member {
     static final int BYTES = Integer.BYTES + Integer.BYTES;
     private int port;
     private InetAddress address;
     private AtomicBoolean suspected = new AtomicBoolean(false);
-    private int incarnationNumber = 0;
+    private AtomicInteger incarnationNumber = new AtomicInteger(0);
 
     Member(int port, InetAddress address) {
         this.address = address;
@@ -31,7 +32,15 @@ public class Member {
     }
 
     int getIncarnationNumber() {
-        return incarnationNumber;
+        return incarnationNumber.get();
+    }
+
+    int incrementAndGetIncarnationNumber() {
+        return incarnationNumber.incrementAndGet();
+    }
+
+    void setIncarnationNumber(int value) {
+        incarnationNumber.set(value);
     }
 
     @Override

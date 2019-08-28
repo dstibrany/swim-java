@@ -42,7 +42,7 @@ class DisseminatorTest {
 
     @Test
     void updateMemberWithAlive() {
-        disseminator.updateMember(member, GossipType.ALIVE);
+        disseminator.updateMemberState(member, new Gossip(GossipType.ALIVE, member, 0));
 
         verify(member).alive();
         verifyZeroInteractions(memberList);
@@ -50,7 +50,7 @@ class DisseminatorTest {
 
     @Test
     void updateMemberWithSuspect() {
-        disseminator.updateMember(member, GossipType.SUSPECT);
+        disseminator.updateMemberState(member, new Gossip(GossipType.SUSPECT, member, 0));
 
         verify(member).suspect();
         verifyZeroInteractions(memberList);
@@ -58,14 +58,14 @@ class DisseminatorTest {
 
     @Test
     void updateMemberWithConfirm() {
-        disseminator.updateMember(member, GossipType.CONFIRM);
+        disseminator.updateMemberState(member, new Gossip(GossipType.CONFIRM, member, 0));
 
         verify(memberList).remove(member);
     }
 
     @Test
     void updateMemberWithJoin() {
-        disseminator.updateMember(member, GossipType.JOIN);
+        disseminator.updateMemberState(member, new Gossip(GossipType.JOIN, member, 0));
 
         verify(memberList).add(member);
     }
