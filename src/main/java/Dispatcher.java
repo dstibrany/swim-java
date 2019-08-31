@@ -5,15 +5,17 @@ import java.util.List;
 import java.util.concurrent.*;
 
 public class Dispatcher {
-    private ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
-    private TransportFactory tf;
-    private Transport listener;
-    private Disseminator disseminator;
+    private final ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+    private final TransportFactory tf;
+    private final Transport listener;
+    private final Disseminator disseminator;
+    private final Member self;
 
     Dispatcher(TransportFactory tf, Disseminator d, Config conf) {
         this.tf = tf;
         disseminator = d;
         listener = tf.createListener(conf.getPort());
+        self = conf.getSelf();
     }
 
     Message receive() {
@@ -78,7 +80,7 @@ public class Dispatcher {
 
     void join(Member member, int timeout) throws TimeoutException, InterruptedException, ExecutionException {
         disseminator.mergeGossip(Collections.singletonList(
-                new Gossip(GossipType.JOIN, SwimJava.getSelf(), 0)));
+                new Gossip(GossipType.JOIN, self, 0)));
         Message join = new Message(MessageType.JOIN, member, disseminator.generateGossip());
 
         Future<Message> f = executor.submit(() -> {

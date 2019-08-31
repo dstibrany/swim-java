@@ -78,6 +78,7 @@ public class Message {
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream(); DataOutputStream dos = new DataOutputStream(baos)) {
             dos.writeInt(messageType.getValue());
             if (messageType == MessageType.PING_REQ) {
+                // TODO: member.serialize()
                 dos.write(indirectProbeMember.getAddress().getAddress());
                 dos.writeInt(indirectProbeMember.getPort());
             }

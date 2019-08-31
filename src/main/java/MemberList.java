@@ -1,9 +1,8 @@
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
+import java.util.Random;
 import java.util.Set;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
-import java.util.stream.Collectors;
+import java.util.concurrent.ConcurrentHashMap;
 
 /*
 - update list
@@ -13,76 +12,95 @@ import java.util.stream.Collectors;
  */
 public class MemberList {
     private final Set<Member> memberList;
-    private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
-    private final ReentrantReadWriteLock.ReadLock rLock = lock.readLock();
-    private final ReentrantReadWriteLock.WriteLock wLock = lock.writeLock();
+    private final Member self;
 
-    MemberList(List<Member> list) {
-        memberList = new HashSet<>(list);
+    MemberList(Set<Member> list, Member self) {
+        memberList = list;
+        this.self = self;
+        memberList.add(self);
     }
 
-    MemberList() {
-        memberList = new HashSet<>();
+    MemberList(Member self) {
+        memberList = ConcurrentHashMap.newKeySet();
+        this.self = self;
+        memberList.add(self);
     }
 
     void add(Member m) {
-        wLock.lock();
-        try {
-            memberList.add(m);
-        } finally {
-            wLock.unlock();
-        }
+        memberList.add(m);
     }
 
     void remove(Member m) {
-        wLock.lock();
-        try {
-            memberList.remove(m);
-        } finally {
-            wLock.unlock();
-        }
+        memberList.remove(m);
     }
 
     boolean contains(Member m) {
-        rLock.lock();
-        try {
-            return memberList.contains(m);
-        } finally {
-            rLock.unlock();
-        }
+        return memberList.contains(m);
     }
 
-    Member get(Member member) {
-        rLock.lock();
-        try {
-            return memberList.stream().filter(member::equals).findAny().orElse(null);
-        } finally {
-            rLock.unlock();
-        }
+    List<Member> getAsList() {
+        return new ArrayList<>(memberList);
     }
 
-    List<Member> getList() {
-        rLock.lock();
-        try {
-            return new ArrayList<>(memberList);
-        } finally {
-            rLock.unlock();
-        }
-    }
-
-    int size() {
+    public int size() {
         return memberList.size();
+    }
+
+    void updateMemberState(Gossip gossip) {
+        if (gossip.getGossipType() == GossipType.JOIN) {
+            memberList.add(gossip.getMember());
+        }
+
+        Member member = memberList.stream().filter(m -> m.equals(gossip.getMember())).findAny().orElse(null);
+        if (member == null) return;
+
+        if (gossip.getIncarnationNumber() > member.getIncarnationNumber()) {
+            member.setIncarnationNumber(gossip.getIncarnationNumber());
+        }
+
+        switch (gossip.getGossipType()) {
+            case ALIVE:
+                member.alive();
+                break;
+            case SUSPECT:
+                member.suspect();
+                break;
+            case CONFIRM:
+                memberList.remove(member);
+                break;
+        }
+    }
+
+    List<Member> getRandomMembers(int k, Member excluded) {
+        Random rand = new Random();
+        List<Member> randomMembers = new ArrayList<>();
+        List<Member> selectionList = getAsList();
+        selectionList.remove(self);
+        selectionList.remove(excluded);
+
+        int selectionSize = Math.min(k, selectionList.size());
+        for (int i = 0; i < selectionSize; i++) {
+            int randomIndex = rand.nextInt(selectionList.size());
+            randomMembers.add(selectionList.get(randomIndex));
+            selectionList.remove(randomIndex);
+        }
+
+        return randomMembers;
     }
 
     @Override
     public String toString() {
         StringBuilder output = new StringBuilder();
+        List<Member> memberList = getAsList();
+
         output.append("MemberList[");
-        for (Member m : memberList) {
-            output.append(m);
-            output.append(", ");
+        for (int i = 0; i < memberList.size(); i++) {
+            output.append(memberList.get(i));
+            if (i < memberList.size() - 1)
+                output.append(", ");
         }
         output.append("]");
+
         return output.toString();
     }
 }

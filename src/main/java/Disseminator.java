@@ -13,16 +13,18 @@ public class Disseminator {
     private final Map<Member, Lock> mutexes = new ConcurrentHashMap<>();
     private final Map<Member, ScheduledFuture<?>> suspectTimers = new ConcurrentHashMap<>();
     private final Logger logger = LogManager.getLogger();
-    ScheduledExecutorService executorService = Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors());
+    private final ScheduledExecutorService executorService = Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors());
+    private final Member self;
 
     Disseminator(MemberList memberList, Config conf) {
         this.memberList = memberList;
         maxGossipPerMessage = conf.getMaxGossipPerMessage();
+        self = conf.getSelf();
     }
 
     List<Gossip> generateMemberList() {
         List<Gossip> gossipList = new ArrayList<>();
-        for (Member member : memberList.getList()) {
+        for (Member member : memberList.getAsList()) {
             gossipList.add(new Gossip(GossipType.ALIVE, member, member.getIncarnationNumber()));
         }
         return gossipList;
@@ -45,89 +47,91 @@ public class Disseminator {
             Lock mutex = getMutex(gossip.getMember());
             mutex.lock();
             try {
-                if (gossip.getMember().equals(SwimJava.getSelf()) && gossip.getGossipType() == GossipType.SUSPECT) {
-                    alive();
+                if (!memberList.contains(gossip.getMember()) && gossip.getGossipType() != GossipType.JOIN) {
                     continue;
                 }
-                Member member = memberList.get(gossip.getMember());
 
-                if (member == null) {
-                    if (gossip.getGossipType() != GossipType.JOIN) return;
-                    member = gossip.getMember();
+                if (gossip.getMember().equals(self) && gossip.getGossipType() == GossipType.SUSPECT) {
+                    alive(self);
+                    continue;
                 }
 
-                boolean wasMerged = gossipBuffer.mergeItem(gossip);
-                if (wasMerged) {
-                    updateMemberState(member, gossip);
-                }
+                mergeItem(gossip);
             } finally {
                 mutex.unlock();
             }
         }
     }
 
-    void updateMemberState(Member member, Gossip gossip) {
-        if (gossip.getIncarnationNumber() > member.getIncarnationNumber()) {
-            member.setIncarnationNumber(gossip.getIncarnationNumber());
+    void suspect(Member m) {
+        Lock mutex = getMutex(m);
+        mutex.lock();
+        try {
+            Gossip suspect = new Gossip(GossipType.SUSPECT, m, m.getIncarnationNumber());
+            mergeItem(suspect);
+        } finally {
+            mutex.unlock();
         }
+    }
 
+    private void alive(Member m) {
+        Gossip alive = new Gossip(GossipType.ALIVE,
+                m,
+                m.incrementAndGetIncarnationNumber());
+        mergeItem(alive);
+    }
+
+    private void confirm(Member m) {
+        Lock mutex = getMutex(m);
+        mutex.lock();
+        try {
+            Gossip confirm = new Gossip(GossipType.CONFIRM, m, m.getIncarnationNumber());
+            mergeItem(confirm);
+        } finally {
+            mutex.unlock();
+        }
+    }
+
+    private void mergeItem(Gossip gossip) {
+        boolean wasMerged = gossipBuffer.mergeItem(gossip);
+        if (wasMerged) {
+            handleSuspicionTimers(gossip);
+            memberList.updateMemberState(gossip);
+        }
+    }
+
+    private void handleSuspicionTimers(Gossip gossip) {
         switch (gossip.getGossipType()) {
             case ALIVE:
-                member.alive();
-                cancelSuspectTimer(member);
+                cancelSuspectTimer(gossip.getMember());
                 break;
             case SUSPECT:
-                member.suspect();
-                startSuspectTimer(member);
-                break;
-            case CONFIRM:
-                memberList.remove(member);
-                break;
-            case JOIN:
-                memberList.add(member);
+                startSuspectTimer(gossip.getMember());
                 break;
         }
-    }
-
-    void startSuspectTimer(Member m) {
-        ScheduledFuture<?> future = executorService.schedule(() -> {
-            System.out.println("FIRE!!!");
-            confirm(m);
-        }, 5000, TimeUnit.MILLISECONDS);
-        suspectTimers.put(m, future);
-    }
-
-    void cancelSuspectTimer(Member m) {
-        ScheduledFuture<?> future = suspectTimers.get(m);
-        if (future != null) {
-            future.cancel(false);
-        }
-    }
-
-    void alive() {
-        logger.info("Marking {} as ALIVE", SwimJava.getSelf());
-        Gossip alive = new Gossip(GossipType.ALIVE,
-                SwimJava.getSelf(),
-                SwimJava.getSelf().incrementAndGetIncarnationNumber());
-        mergeGossip(Collections.singletonList(alive));
-    }
-
-    void suspect(Member m) {
-        logger.info("Marking {} as SUSPECTED", m);
-        Gossip suspect = new Gossip(GossipType.SUSPECT, m, m.getIncarnationNumber());
-        mergeGossip(Collections.singletonList(suspect));
-    }
-
-    void confirm(Member m) {
-        logger.info("Marking {} as DEAD", m);
-        Gossip confirm = new Gossip(GossipType.CONFIRM, m, m.getIncarnationNumber());
-        mergeGossip(Collections.singletonList(confirm));
     }
 
     private Lock getMutex(Member m) {
         Lock newMutexIfAbsent = new ReentrantLock();
         Lock existingMutex = mutexes.putIfAbsent(m, newMutexIfAbsent);
         return (existingMutex == null) ? newMutexIfAbsent : existingMutex;
+    }
+
+    private void startSuspectTimer(Member m) {
+        if (suspectTimers.get(m) != null) return;
+
+        ScheduledFuture<?> future = executorService.schedule(() -> {
+            confirm(m);
+        }, 5000, TimeUnit.MILLISECONDS); // TODO this should be in the config
+        suspectTimers.put(m, future);
+    }
+
+    private void cancelSuspectTimer(Member m) {
+        ScheduledFuture<?> future = suspectTimers.get(m);
+        if (future != null) {
+            future.cancel(false);
+            suspectTimers.remove(m);
+        }
     }
 
 }

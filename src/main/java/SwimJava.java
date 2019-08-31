@@ -13,10 +13,6 @@ public class SwimJava {
     private static Dispatcher dispatcher;
     private static Disseminator disseminator;
 
-    static Member getSelf() {
-        return self;
-    }
-
     public static void main(String[] args) throws InterruptedException, ExecutionException {
         init();
         join();
@@ -28,8 +24,8 @@ public class SwimJava {
         executorService = Executors.newFixedThreadPool(2);
         logger = LogManager.getLogger();
         conf = new Config();
-        self = new Member(conf.getPort(), conf.getAddress());
-        memberList = new MemberList();
+        self = conf.getSelf();
+        memberList = new MemberList(self);
         memberList.add(self);
         disseminator = new Disseminator(memberList, conf);
         dispatcher = new Dispatcher(new TransportFactory(), disseminator, conf);

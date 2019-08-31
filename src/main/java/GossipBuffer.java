@@ -1,34 +1,36 @@
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 class GossipBuffer {
     private final ConcurrentHashMap<Member, Gossip> bufferElements;
-//    private final ConcurrentHashMap<>
 
     GossipBuffer(ConcurrentHashMap<Member, Gossip> bufferElements) {
         this.bufferElements = bufferElements;
     }
 
     List<Gossip> getItems(int n) {
-        List<Gossip> gossipItems =  bufferElements.values()
-                .stream()
-                .filter(g -> !g.isExpired())
-                .sorted()
-                .limit(n)
-                .collect(Collectors.toList());
+        List<Gossip> gossipItems = new ArrayList<>(bufferElements.values())
+                                   .stream()
+                                   .filter(g -> !g.isExpired())
+                                   .sorted()
+                                   .limit(n)
+                                   .collect(Collectors.toList());
 
         gossipItems.forEach(this::expireGossip);
-        
+
         return gossipItems;
     }
 
     boolean mergeItem(Gossip gossip) {
         boolean wasMerged = false;
+
         if (overrides(gossip, bufferElements.get(gossip.getMember()))) {
             bufferElements.put(gossip.getMember(), gossip);
             wasMerged = true;
         }
+
         return wasMerged;
     }
 
