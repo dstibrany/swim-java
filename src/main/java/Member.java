@@ -1,3 +1,4 @@
+import java.io.*;
 import java.net.InetAddress;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -13,6 +14,23 @@ public class Member {
     Member(int port, InetAddress address) {
         this.address = address;
         this.port = port;
+    }
+
+    static Member deserialize(byte[] data) {
+        Member member;
+
+        try (DataInputStream dis = new DataInputStream(new ByteArrayInputStream(data))) {
+            byte[] address = new byte[Integer.BYTES];
+            int bytesRead = dis.read(address);
+            int port = dis.readInt();
+            member = new Member(port, InetAddress.getByAddress(address));
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.exit(1);
+            return null;
+        }
+
+        return member;
     }
 
     int getPort() {
@@ -41,6 +59,18 @@ public class Member {
 
     void setIncarnationNumber(int value) {
         incarnationNumber.set(value);
+    }
+
+    byte[] serialize() {
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream(); DataOutputStream dos = new DataOutputStream(baos)) {
+            dos.write(address.getAddress());
+            dos.writeInt(port);
+            return baos.toByteArray();
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.exit(1);
+            return null;
+        }
     }
 
     @Override

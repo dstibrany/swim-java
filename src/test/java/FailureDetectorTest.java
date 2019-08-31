@@ -33,7 +33,7 @@ class FailureDetectorTest {
         disseminator = mock(Disseminator.class);
         memberList = new MemberList(config.getSelf());
         memberListSpy = spy(memberList);
-        fd = new FailureDetector(memberList, dispatcher, disseminator, config);
+        fd = new FailureDetector(memberListSpy, dispatcher, disseminator, config);
         fdSpy = spy(fd);
         inOrder = inOrder(dispatcher);
     }

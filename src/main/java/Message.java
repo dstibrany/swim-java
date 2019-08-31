@@ -30,10 +30,9 @@ public class Message {
             messageType = MessageType.getType(dis.readInt());
             Member iProbeMember = null;
             if (messageType == MessageType.PING_REQ) {
-                byte[] address = new byte[Integer.BYTES];
-                int bytesRead = dis.read(address);
-                int port = dis.readInt();
-                iProbeMember = new Member(port, InetAddress.getByAddress(address));
+                byte[] memberBuffer = new byte[Member.BYTES];
+                int bytesRead = dis.read(memberBuffer);
+                iProbeMember = Member.deserialize(memberBuffer);
             }
 
             int numGossipMessages = dis.readInt();
@@ -78,9 +77,7 @@ public class Message {
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream(); DataOutputStream dos = new DataOutputStream(baos)) {
             dos.writeInt(messageType.getValue());
             if (messageType == MessageType.PING_REQ) {
-                // TODO: member.serialize()
-                dos.write(indirectProbeMember.getAddress().getAddress());
-                dos.writeInt(indirectProbeMember.getPort());
+                dos.write(indirectProbeMember.serialize());
             }
             dos.writeInt(gossipList.size());
             for (Gossip g : gossipList) {
