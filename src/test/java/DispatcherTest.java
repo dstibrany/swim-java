@@ -179,7 +179,7 @@ class DispatcherTest {
     }
 
     @Test
-    void testJoinAck() throws InterruptedException, ExecutionException  {
+    void testJoinAck() throws InterruptedException, ExecutionException {
         Member m1 = new Member(1234, InetAddress.getLoopbackAddress());
         ArgumentCaptor<Message> argument = ArgumentCaptor.forClass(Message.class);
 

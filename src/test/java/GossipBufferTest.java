@@ -2,7 +2,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.net.InetAddress;
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -26,7 +25,7 @@ class GossipBufferTest {
     @Test
     void itemMerged() {
         @SuppressWarnings("unchecked")
-        ConcurrentHashMap<Member, Gossip> bufferElements =  mock(ConcurrentHashMap.class);
+        ConcurrentHashMap<Member, Gossip> bufferElements = mock(ConcurrentHashMap.class);
         GossipBuffer gossipBuffer = new GossipBuffer(bufferElements);
         Member m1 = new Member(5555, InetAddress.getLoopbackAddress());
         Gossip alive = new Gossip(GossipType.ALIVE, m1);

@@ -1,21 +1,23 @@
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.*;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class Disseminator {
     private final int maxGossipPerMessage;
-    private MemberList memberList;
-    private GossipBuffer gossipBuffer = new GossipBuffer(new ConcurrentHashMap<>());
     private final Map<Member, Lock> mutexes = new ConcurrentHashMap<>();
     private final Map<Member, ScheduledFuture<?>> suspectTimers = new ConcurrentHashMap<>();
     private final Logger logger = LogManager.getLogger();
     private final ScheduledExecutorService executorService = Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors());
     private final Member self;
     private final int suspicionTimeout;
+    private MemberList memberList;
+    private GossipBuffer gossipBuffer = new GossipBuffer(new ConcurrentHashMap<>());
 
     Disseminator(MemberList memberList, Config conf) {
         this.memberList = memberList;
@@ -65,6 +67,7 @@ public class Disseminator {
         }
     }
 
+    // TODO: more accurate name
     void suspect(Member m) {
         Lock mutex = getMutex(m);
         mutex.lock();
@@ -76,12 +79,14 @@ public class Disseminator {
         }
     }
 
+    // TODO: more accurate name
     private void alive(Member m) {
         m.incrementAndGetIncarnationNumber();
         Gossip alive = new Gossip(GossipType.ALIVE, m);
         mergeItem(alive);
     }
 
+    // TODO: more accurate name
     private void confirm(Member m) {
         Lock mutex = getMutex(m);
         mutex.lock();

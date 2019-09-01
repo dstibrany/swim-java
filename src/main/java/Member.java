@@ -59,12 +59,12 @@ public class Member {
         return incarnationNumber.get();
     }
 
-    int incrementAndGetIncarnationNumber() {
-        return incarnationNumber.incrementAndGet();
-    }
-
     void setIncarnationNumber(int value) {
         incarnationNumber.set(value);
+    }
+
+    int incrementAndGetIncarnationNumber() {
+        return incarnationNumber.incrementAndGet();
     }
 
     byte[] serialize() {

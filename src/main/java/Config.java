@@ -8,13 +8,13 @@ import java.util.List;
 class Config {
     private final int maxGossipPerMessage;
     private final int port;
-    private  InetAddress address;
     private final List<Member> seeds = new ArrayList<>();
     private final int reqTimeout;
     private final int protocolPeriod;
     private final int subgroupSize;
     private final Member self;
     private final int suspicionTimeout;
+    private InetAddress address;
 
     Config() {
         this(ConfigFactory.load());

@@ -12,11 +12,11 @@ class GossipBuffer {
 
     List<Gossip> getItems(int n, int memberListSize) {
         List<Gossip> gossipItems = new ArrayList<>(bufferElements.values())
-                                   .stream()
-                                   .filter(g -> !g.isExpired())
-                                   .sorted()
-                                   .limit(n)
-                                   .collect(Collectors.toList());
+                .stream()
+                .filter(g -> !g.isExpired())
+                .sorted()
+                .limit(n)
+                .collect(Collectors.toList());
 
         gossipItems.forEach(g -> expireGossip(g, memberListSize));
 
