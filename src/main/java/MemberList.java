@@ -30,10 +30,6 @@ public class MemberList {
         memberList.add(m);
     }
 
-    void remove(Member m) {
-        memberList.remove(m);
-    }
-
     boolean contains(Member m) {
         return memberList.contains(m);
     }

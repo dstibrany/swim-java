@@ -2,7 +2,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.net.InetAddress;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -12,6 +14,23 @@ class GossipBufferTest {
     private GossipBuffer gossipBuffer;
     private ConcurrentHashMap<Member, Gossip> bufferElements;
 
+    private ConcurrentHashMap<Member, Gossip> buildBuffer() {
+        Member m1 = new Member(1234, InetAddress.getLoopbackAddress());
+        Member m2 = new Member(1235, InetAddress.getLoopbackAddress());
+        Member m3 = new Member(1236, InetAddress.getLoopbackAddress());
+        Member m4 = new Member(1237, InetAddress.getLoopbackAddress());
+        Gossip g1 = new Gossip(GossipType.ALIVE, m1);
+        Gossip g2 = new Gossip(GossipType.ALIVE, m2);
+        Gossip g3 = new Gossip(GossipType.ALIVE, m3);
+        Gossip g4 = new Gossip(GossipType.ALIVE, m4);
+        ConcurrentHashMap<Member, Gossip> bufferElements = new ConcurrentHashMap<>();
+        bufferElements.put(m1, g1);
+        bufferElements.put(m2, g2);
+        bufferElements.put(m3, g3);
+        bufferElements.put(m4, g4);
+        return bufferElements;
+    }
+
     @BeforeEach
     void setUp() {
         bufferElements = new ConcurrentHashMap<>();
@@ -19,7 +38,55 @@ class GossipBufferTest {
     }
 
     @Test
-    void getItems() {
+    void getItemsReturnsCorrectNumberOfItems() {
+        GossipBuffer gb = new GossipBuffer(buildBuffer());
+
+        List<Gossip> gossipList1 = gb.getItems(2, 4);
+        assertEquals(2, gossipList1.size());
+
+        List<Gossip> gossipList2 = gb.getItems(4, 4);
+        assertEquals(4, gossipList2.size());
+
+        List<Gossip> gossipList3 = gb.getItems(5, 4);
+        assertEquals(4, gossipList3.size());
+    }
+
+    @Test
+    void getItemsExcludesExpiredGossip() {
+        ConcurrentHashMap<Member, Gossip> bufferElements = buildBuffer();
+        bufferElements.values().stream().findAny().get().setExpired();
+        GossipBuffer gb = new GossipBuffer(bufferElements);
+
+        List<Gossip> gossipList = gb.getItems(bufferElements.size(), bufferElements.size());
+        assertEquals(bufferElements.size() - 1, gossipList.size());
+        for (Gossip g : gossipList) {
+            assertFalse(g.isExpired());
+        }
+    }
+    @Test
+    void getItemsReturnsCorrectOrder() {
+        ConcurrentHashMap<Member, Gossip> bufferElements = buildBuffer();
+        List<Gossip> gossip = bufferElements.values().stream().limit(2).collect(Collectors.toList());
+        // increase piggyback count
+        for (int i = 0; i < gossip.size(); i++) {
+            for (int j = 0; j < i + 1; j++) {
+                gossip.get(i).serialize();
+            }
+        }
+        GossipBuffer gb = new GossipBuffer(bufferElements);
+
+        List<Gossip> gossipList = gb.getItems(bufferElements.size(), bufferElements.size());
+        assertEquals(gossip.get(1), gossipList.get(gossipList.size() - 1));
+        assertEquals(gossip.get(0), gossipList.get(gossipList.size() - 2));
+    }
+
+    @Test
+    void getItemsExpiresGossip() {
+        ConcurrentHashMap<Member, Gossip> bufferElements = buildBuffer();
+
+        GossipBuffer gb = new GossipBuffer(bufferElements);
+
+        assertFalse(true);
     }
 
     @Test

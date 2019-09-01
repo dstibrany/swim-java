@@ -81,7 +81,7 @@ public class Gossip implements Comparable<Gossip> {
 
     @Override
     public int compareTo(Gossip o) {
-        return incarnationNumber - o.getIncarnationNumber();
+        return piggybackCount.get() - o.getPiggyBackCount();
     }
 
     @Override
