@@ -27,6 +27,7 @@ class FailureDetector {
 
     void runProtocol() throws InterruptedException, ExecutionException {
         logger.debug("{}", memberList);
+
         List<Member> targetList = memberList.getRandomMembers(1, null);
         if (targetList.size() == 0) {
             logger.info("There are no members to PING");
@@ -41,16 +42,16 @@ class FailureDetector {
             logger.info("Received ACK from {}", target);
         } catch (TimeoutException e) {
             logger.info("Timeout while waiting for ACK from {}", target);
-            List<Member> pingReqtargets = memberList.getRandomMembers(conf.getSubgroupSize(), target);
-            if (pingReqtargets.size() == 0) {
+            List<Member> pingReqTargets = memberList.getRandomMembers(conf.getSubgroupSize(), target);
+            if (pingReqTargets.size() == 0) {
                 logger.info("There are no members to send a PING-REQ");
                 disseminator.suspect(target);
                 Thread.sleep(conf.getProtocolPeriod());
                 return;
             }
             try {
-                logger.info("Sending PING-REQ to {} hosts", pingReqtargets.size());
-                dispatcher.pingReq(pingReqtargets, target, conf.getReqTimeout());
+                logger.info("Sending PING-REQ to {} hosts", pingReqTargets.size());
+                dispatcher.pingReq(pingReqTargets, target, conf.getReqTimeout());
                 logger.info("Received ACK from Indirect Probes");
             } catch (TimeoutException e2) {
                 logger.info("Timeout waiting for Indirect Probes");
@@ -59,5 +60,4 @@ class FailureDetector {
         }
         Thread.sleep(conf.getProtocolPeriod());
     }
-
 }

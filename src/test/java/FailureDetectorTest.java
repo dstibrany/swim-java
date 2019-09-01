@@ -35,7 +35,7 @@ class FailureDetectorTest {
         memberListSpy = spy(memberList);
         fd = new FailureDetector(memberListSpy, dispatcher, disseminator, config);
         fdSpy = spy(fd);
-        inOrder = inOrder(dispatcher);
+        inOrder = inOrder(dispatcher, disseminator);
     }
 
     @Test
@@ -69,18 +69,17 @@ class FailureDetectorTest {
     void testNoAckThenIndirectProbeTimeout() throws InterruptedException, ExecutionException, TimeoutException {
         Member target = new Member(1234, InetAddress.getLoopbackAddress());
         Member pingReqTarget = new Member(1235, InetAddress.getLoopbackAddress());
-
         memberList.add(target);
         memberList.add(pingReqTarget);
         doThrow(TimeoutException.class).when(dispatcher).ping(target, config.getReqTimeout());
+        doThrow(TimeoutException.class).when(dispatcher).pingReq(Arrays.asList(pingReqTarget), target, config.getReqTimeout());
         when(memberListSpy.getRandomMembers(1, null)).thenReturn(Arrays.asList(target));
 
         fdSpy.runProtocol();
+
         inOrder.verify(dispatcher).ping(target, config.getReqTimeout());
         inOrder.verify(dispatcher).pingReq(Arrays.asList(pingReqTarget), target, config.getReqTimeout());
-        // TODO: add this back
-//        verify(memberListSpy).remove(any(Member.class));
-//        assertFalse(memberList.contains(target));
+        inOrder.verify(disseminator).suspect(target);
     }
 
     @Test
