@@ -12,10 +12,10 @@ public class Gossip implements Comparable<Gossip> {
     private AtomicInteger piggybackCount = new AtomicInteger(0);
     private AtomicBoolean expired = new AtomicBoolean(false);
 
-    Gossip(GossipType gossipType, Member member, int incarnationNumber) {
+    Gossip(GossipType gossipType, Member member) {
         this.gossipType = gossipType;
         this.member = member;
-        this.incarnationNumber = incarnationNumber;
+        this.incarnationNumber = member.getIncarnationNumber();
     }
 
     static Gossip deserialize(byte[] data) {
@@ -28,11 +28,7 @@ public class Gossip implements Comparable<Gossip> {
             int bytesRead = dis.read(address);
             int port = dis.readInt();
             int incarnationNumber = dis.readInt();
-            gossip = new Gossip(
-                    gossipType,
-                    new Member(port, InetAddress.getByAddress(address)),
-                    incarnationNumber
-            );
+            gossip = new Gossip(gossipType, new Member(port, InetAddress.getByAddress(address)));
         } catch (IOException e) {
             e.printStackTrace();
             System.exit(1);

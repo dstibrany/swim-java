@@ -29,7 +29,7 @@ class GossipBufferTest {
         ConcurrentHashMap<Member, Gossip> bufferElements =  mock(ConcurrentHashMap.class);
         GossipBuffer gossipBuffer = new GossipBuffer(bufferElements);
         Member m1 = new Member(5555, InetAddress.getLoopbackAddress());
-        Gossip alive = new Gossip(GossipType.ALIVE, m1, 0);
+        Gossip alive = new Gossip(GossipType.ALIVE, m1);
 
         boolean wasMerged = gossipBuffer.mergeItem(alive);
 
@@ -42,9 +42,10 @@ class GossipBufferTest {
         @SuppressWarnings("unchecked")
         ConcurrentHashMap<Member, Gossip> bufferElements = spy(ConcurrentHashMap.class);
         GossipBuffer gossipBuffer = new GossipBuffer(bufferElements);
-        Member m1 = new Member(5555, InetAddress.getLoopbackAddress());
-        Gossip alive_inc0 = new Gossip(GossipType.ALIVE, m1, 0);
-        Gossip alive_inc1 = new Gossip(GossipType.ALIVE, m1, 1);
+        Member m0 = new Member(5555, InetAddress.getLoopbackAddress());
+        Member m1 = new Member(5555, InetAddress.getLoopbackAddress(), 1);
+        Gossip alive_inc0 = new Gossip(GossipType.ALIVE, m0);
+        Gossip alive_inc1 = new Gossip(GossipType.ALIVE, m1);
         bufferElements.put(m1, alive_inc1);
 
         boolean wasMerged = gossipBuffer.mergeItem(alive_inc0);
@@ -57,8 +58,8 @@ class GossipBufferTest {
     void overridesOnDifferentMembersThrowsException() {
         Member m1 = new Member(5555, InetAddress.getLoopbackAddress());
         Member m2 = new Member(5556, InetAddress.getLoopbackAddress());
-        Gossip alive0 = new Gossip(GossipType.ALIVE, m1, 0);
-        Gossip alive1 = new Gossip(GossipType.ALIVE, m2, 1);
+        Gossip alive0 = new Gossip(GossipType.ALIVE, m1);
+        Gossip alive1 = new Gossip(GossipType.ALIVE, m2);
         assertThrows(RuntimeException.class, () -> {
             gossipBuffer.overrides(alive0, alive1);
         });
@@ -66,12 +67,13 @@ class GossipBufferTest {
 
     @Test
     void aliveOverrides() {
-        Member m1 = new Member(5555, InetAddress.getLoopbackAddress());
-        Gossip alive1 = new Gossip(GossipType.ALIVE, m1, 1);
-        Gossip alive0 = new Gossip(GossipType.ALIVE, m1, 0);
-        Gossip suspect0 = new Gossip(GossipType.SUSPECT, m1, 0);
-        Gossip confirm = new Gossip(GossipType.CONFIRM, m1, 0);
-        Gossip join = new Gossip(GossipType.JOIN, m1, 0);
+        Member m0 = new Member(5555, InetAddress.getLoopbackAddress());
+        Member m1 = new Member(5555, InetAddress.getLoopbackAddress(), 1);
+        Gossip alive1 = new Gossip(GossipType.ALIVE, m1);
+        Gossip alive0 = new Gossip(GossipType.ALIVE, m0);
+        Gossip suspect0 = new Gossip(GossipType.SUSPECT, m0);
+        Gossip confirm = new Gossip(GossipType.CONFIRM, m1);
+        Gossip join = new Gossip(GossipType.JOIN, m1);
 
         assertTrue(gossipBuffer.overrides(alive1, alive0));
         assertTrue(gossipBuffer.overrides(alive1, suspect0));
@@ -83,13 +85,14 @@ class GossipBufferTest {
 
     @Test
     void suspectOverrides() {
-        Member m1 = new Member(5555, InetAddress.getLoopbackAddress());
-        Gossip suspect_inc1 = new Gossip(GossipType.SUSPECT, m1, 1);
-        Gossip suspect_inc0 = new Gossip(GossipType.SUSPECT, m1, 0);
-        Gossip alive_inc0 = new Gossip(GossipType.ALIVE, m1, 0);
-        Gossip alive_inc1 = new Gossip(GossipType.ALIVE, m1, 1);
-        Gossip confirm = new Gossip(GossipType.CONFIRM, m1, 0);
-        Gossip join = new Gossip(GossipType.JOIN, m1, 0);
+        Member m0 = new Member(5555, InetAddress.getLoopbackAddress());
+        Member m1 = new Member(5555, InetAddress.getLoopbackAddress(), 1);
+        Gossip suspect_inc1 = new Gossip(GossipType.SUSPECT, m1);
+        Gossip suspect_inc0 = new Gossip(GossipType.SUSPECT, m0);
+        Gossip alive_inc0 = new Gossip(GossipType.ALIVE, m0);
+        Gossip alive_inc1 = new Gossip(GossipType.ALIVE, m1);
+        Gossip confirm = new Gossip(GossipType.CONFIRM, m1);
+        Gossip join = new Gossip(GossipType.JOIN, m1);
 
         assertTrue(gossipBuffer.overrides(suspect_inc1, suspect_inc0));
         assertTrue(gossipBuffer.overrides(suspect_inc1, alive_inc0));
@@ -102,13 +105,14 @@ class GossipBufferTest {
 
     @Test
     void confirmOverrides() {
-        Member m1 = new Member(5555, InetAddress.getLoopbackAddress());
-        Gossip suspect_inc1 = new Gossip(GossipType.SUSPECT, m1, 1);
-        Gossip suspect_inc0 = new Gossip(GossipType.SUSPECT, m1, 0);
-        Gossip alive_inc0 = new Gossip(GossipType.ALIVE, m1, 0);
-        Gossip alive_inc1 = new Gossip(GossipType.ALIVE, m1, 1);
-        Gossip confirm = new Gossip(GossipType.CONFIRM, m1, 0);
-        Gossip join = new Gossip(GossipType.JOIN, m1, 0);
+        Member m0 = new Member(5555, InetAddress.getLoopbackAddress());
+        Member m1 = new Member(5555, InetAddress.getLoopbackAddress(), 1);
+        Gossip suspect_inc1 = new Gossip(GossipType.SUSPECT, m1);
+        Gossip suspect_inc0 = new Gossip(GossipType.SUSPECT, m0);
+        Gossip alive_inc0 = new Gossip(GossipType.ALIVE, m0);
+        Gossip alive_inc1 = new Gossip(GossipType.ALIVE, m1);
+        Gossip confirm = new Gossip(GossipType.CONFIRM, m1);
+        Gossip join = new Gossip(GossipType.JOIN, m1);
 
         assertTrue(gossipBuffer.overrides(confirm, suspect_inc0));
         assertTrue(gossipBuffer.overrides(confirm, suspect_inc1));
@@ -123,12 +127,12 @@ class GossipBufferTest {
     @Test
     void joinOverrides() {
         Member m1 = new Member(5555, InetAddress.getLoopbackAddress());
-        Gossip suspect_inc1 = new Gossip(GossipType.SUSPECT, m1, 1);
-        Gossip suspect_inc0 = new Gossip(GossipType.SUSPECT, m1, 0);
-        Gossip alive_inc0 = new Gossip(GossipType.ALIVE, m1, 0);
-        Gossip alive_inc1 = new Gossip(GossipType.ALIVE, m1, 1);
-        Gossip confirm = new Gossip(GossipType.CONFIRM, m1, 0);
-        Gossip join = new Gossip(GossipType.JOIN, m1, 0);
+        Gossip suspect_inc1 = new Gossip(GossipType.SUSPECT, m1);
+        Gossip suspect_inc0 = new Gossip(GossipType.SUSPECT, m1);
+        Gossip alive_inc0 = new Gossip(GossipType.ALIVE, m1);
+        Gossip alive_inc1 = new Gossip(GossipType.ALIVE, m1);
+        Gossip confirm = new Gossip(GossipType.CONFIRM, m1);
+        Gossip join = new Gossip(GossipType.JOIN, m1);
 
         assertTrue(gossipBuffer.overrides(join, suspect_inc0));
         assertTrue(gossipBuffer.overrides(join, suspect_inc1));

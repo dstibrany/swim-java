@@ -5,15 +5,20 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class Member {
-    static final int BYTES = Integer.BYTES + Integer.BYTES;
+    static final int BYTES = Integer.BYTES + Integer.BYTES + Integer.BYTES;
     private int port;
     private InetAddress address;
     private AtomicBoolean suspected = new AtomicBoolean(false);
-    private AtomicInteger incarnationNumber = new AtomicInteger(0);
+    private AtomicInteger incarnationNumber;
 
-    Member(int port, InetAddress address) {
+    Member(int port, InetAddress address, int incarnationNumber) {
         this.address = address;
         this.port = port;
+        this.incarnationNumber = new AtomicInteger(incarnationNumber);
+    }
+
+    Member(int port, InetAddress address) {
+        this(port, address, 0);
     }
 
     static Member deserialize(byte[] data) {
@@ -23,7 +28,8 @@ public class Member {
             byte[] address = new byte[Integer.BYTES];
             int bytesRead = dis.read(address);
             int port = dis.readInt();
-            member = new Member(port, InetAddress.getByAddress(address));
+            int incarnationNumber = dis.readInt();
+            member = new Member(port, InetAddress.getByAddress(address), incarnationNumber);
         } catch (IOException e) {
             e.printStackTrace();
             System.exit(1);
@@ -65,6 +71,7 @@ public class Member {
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream(); DataOutputStream dos = new DataOutputStream(baos)) {
             dos.write(address.getAddress());
             dos.writeInt(port);
+            dos.writeInt(incarnationNumber.get());
             return baos.toByteArray();
         } catch (IOException e) {
             e.printStackTrace();

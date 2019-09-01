@@ -10,7 +10,7 @@ class GossipBuffer {
         this.bufferElements = bufferElements;
     }
 
-    List<Gossip> getItems(int n) {
+    List<Gossip> getItems(int n, int memberListSize) {
         List<Gossip> gossipItems = new ArrayList<>(bufferElements.values())
                                    .stream()
                                    .filter(g -> !g.isExpired())
@@ -18,7 +18,7 @@ class GossipBuffer {
                                    .limit(n)
                                    .collect(Collectors.toList());
 
-        gossipItems.forEach(this::expireGossip);
+        gossipItems.forEach(g -> expireGossip(g, memberListSize));
 
         return gossipItems;
     }
@@ -74,9 +74,8 @@ class GossipBuffer {
         return false;
     }
 
-    private void expireGossip(Gossip g) {
-        // TODO: this should use memberlist size
-        if (g.getPiggyBackCount() >= Math.log(bufferElements.size())) {
+    private void expireGossip(Gossip g, int memberListSize) {
+        if (g.getPiggyBackCount() >= Math.log(memberListSize)) {
             g.setExpired();
         }
     }

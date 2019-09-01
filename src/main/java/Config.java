@@ -14,6 +14,7 @@ class Config {
     private final int protocolPeriod;
     private final int subgroupSize;
     private final Member self;
+    private final int suspicionTimeout;
 
     Config() {
         this(ConfigFactory.load());
@@ -47,6 +48,7 @@ class Config {
         subgroupSize = conf.getInt("swim-java.subgroup_size");
         maxGossipPerMessage = conf.getInt("swim-java.max_gossip_per_message");
         self = new Member(port, address);
+        suspicionTimeout = conf.getInt("swim-java.suspicion_timeout");
     }
 
     int getPort() {
@@ -79,6 +81,10 @@ class Config {
 
     Member getSelf() {
         return self;
+    }
+
+    int getSuspicionTimeout() {
+        return suspicionTimeout;
     }
 
 

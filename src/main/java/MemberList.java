@@ -54,8 +54,8 @@ public class MemberList {
         Member member = memberList.stream().filter(m -> m.equals(gossip.getMember())).findAny().orElse(null);
         if (member == null) return;
 
-        if (gossip.getIncarnationNumber() > member.getIncarnationNumber()) {
-            member.setIncarnationNumber(gossip.getIncarnationNumber());
+        if (gossip.getMember().getIncarnationNumber() > member.getIncarnationNumber()) {
+            member.setIncarnationNumber(gossip.getMember().getIncarnationNumber());
         }
 
         switch (gossip.getGossipType()) {

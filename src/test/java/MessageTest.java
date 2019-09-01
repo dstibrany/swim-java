@@ -29,8 +29,7 @@ class MessageTest {
         DataOutputStream dos = new DataOutputStream(baos);
         dos.writeInt(mt.getValue());
         if (indirectProbeMember != null) {
-            dos.write(indirectProbeMember.getAddress().getAddress());
-            dos.writeInt(indirectProbeMember.getPort());
+            dos.write(indirectProbeMember.serialize());
         }
         dos.writeInt(gossipList.size());
         for (Gossip g : gossipList) {
@@ -94,7 +93,7 @@ class MessageTest {
     @Test
     void serializeGossip() throws IOException {
         Member gossipMember = new Member(8888, InetAddress.getLoopbackAddress());
-        gossipList.add(new Gossip(GossipType.ALIVE, gossipMember, 0));
+        gossipList.add(new Gossip(GossipType.ALIVE, gossipMember));
         Message ping = new Message(MessageType.PING, member, indirectProbeMember, gossipList);
         assertArrayEquals(
                 createMessageBytes(MessageType.PING, null, gossipList),
@@ -105,7 +104,7 @@ class MessageTest {
     @Test
     void deserializeGossip() throws IOException {
         Member gossipMember = new Member(8888, InetAddress.getLoopbackAddress());
-        gossipList.add(new Gossip(GossipType.ALIVE, gossipMember, 0));
+        gossipList.add(new Gossip(GossipType.ALIVE, gossipMember));
         Message ping = Message.deserialize(
                 createMessageBytes(MessageType.PING, null, gossipList),
                 member

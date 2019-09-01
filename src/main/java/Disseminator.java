@@ -15,17 +15,19 @@ public class Disseminator {
     private final Logger logger = LogManager.getLogger();
     private final ScheduledExecutorService executorService = Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors());
     private final Member self;
+    private final int suspicionTimeout;
 
     Disseminator(MemberList memberList, Config conf) {
         this.memberList = memberList;
         maxGossipPerMessage = conf.getMaxGossipPerMessage();
         self = conf.getSelf();
+        suspicionTimeout = conf.getSuspicionTimeout();
     }
 
     List<Gossip> generateMemberList() {
         List<Gossip> gossipList = new ArrayList<>();
         for (Member member : memberList.getAsList()) {
-            gossipList.add(new Gossip(GossipType.ALIVE, member, member.getIncarnationNumber()));
+            gossipList.add(new Gossip(GossipType.ALIVE, member));
         }
         return gossipList;
     }
@@ -37,7 +39,7 @@ public class Disseminator {
     }
 
     List<Gossip> generateGossip() {
-        return gossipBuffer.getItems(maxGossipPerMessage);
+        return gossipBuffer.getItems(maxGossipPerMessage, memberList.size());
     }
 
     void mergeGossip(List<Gossip> gossipList) {
@@ -67,7 +69,7 @@ public class Disseminator {
         Lock mutex = getMutex(m);
         mutex.lock();
         try {
-            Gossip suspect = new Gossip(GossipType.SUSPECT, m, m.getIncarnationNumber());
+            Gossip suspect = new Gossip(GossipType.SUSPECT, m);
             mergeItem(suspect);
         } finally {
             mutex.unlock();
@@ -75,9 +77,8 @@ public class Disseminator {
     }
 
     private void alive(Member m) {
-        Gossip alive = new Gossip(GossipType.ALIVE,
-                m,
-                m.incrementAndGetIncarnationNumber());
+        m.incrementAndGetIncarnationNumber();
+        Gossip alive = new Gossip(GossipType.ALIVE, m);
         mergeItem(alive);
     }
 
@@ -85,7 +86,7 @@ public class Disseminator {
         Lock mutex = getMutex(m);
         mutex.lock();
         try {
-            Gossip confirm = new Gossip(GossipType.CONFIRM, m, m.getIncarnationNumber());
+            Gossip confirm = new Gossip(GossipType.CONFIRM, m);
             mergeItem(confirm);
         } finally {
             mutex.unlock();
@@ -122,7 +123,7 @@ public class Disseminator {
 
         ScheduledFuture<?> future = executorService.schedule(() -> {
             confirm(m);
-        }, 5000, TimeUnit.MILLISECONDS); // TODO this should be in the config
+        }, suspicionTimeout, TimeUnit.MILLISECONDS);
         suspectTimers.put(m, future);
     }
 

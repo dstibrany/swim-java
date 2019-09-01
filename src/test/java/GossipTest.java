@@ -54,8 +54,8 @@ class GossipTest {
     }
 
     @Test
-    void serializeAlice() throws IOException {
-        Gossip alive = new Gossip(GossipType.ALIVE, member, incarnationNumber);
+    void serializeAlive() throws IOException {
+        Gossip alive = new Gossip(GossipType.ALIVE, member);
         assertArrayEquals(createMessageBytes(GossipType.ALIVE), alive.serialize());
     }
 }
