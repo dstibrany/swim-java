@@ -10,14 +10,15 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class Disseminator {
     private final int maxGossipPerMessage;
+    private final int suspicionTimeout;
     private final Map<Member, Lock> mutexes = new ConcurrentHashMap<>();
     private final Map<Member, ScheduledFuture<?>> suspectTimers = new ConcurrentHashMap<>();
     private final Logger logger = LogManager.getLogger();
-    private final ScheduledExecutorService executorService = Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors());
     private final Member self;
-    private final int suspicionTimeout;
-    private MemberList memberList;
-    private GossipBuffer gossipBuffer = new GossipBuffer(new ConcurrentHashMap<>());
+    private final MemberList memberList;
+    private final GossipBuffer gossipBuffer = new GossipBuffer(new ConcurrentHashMap<>());
+    private final ScheduledExecutorService executorService =
+            Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors());
 
     Disseminator(MemberList memberList, Config conf) {
         this.memberList = memberList;

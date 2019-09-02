@@ -24,11 +24,9 @@ public class Gossip implements Comparable<Gossip> {
 
         try (DataInputStream dis = new DataInputStream(new ByteArrayInputStream(data))) {
             gossipType = GossipType.getType(dis.readInt());
-            byte[] address = new byte[Integer.BYTES];
-            int bytesRead = dis.read(address);
-            int port = dis.readInt();
-            int incarnationNumber = dis.readInt();
-            gossip = new Gossip(gossipType, new Member(port, InetAddress.getByAddress(address)));
+            byte[] memberBuffer = new byte[Member.BYTES];
+            int bytesRead = dis.read(memberBuffer);
+            gossip = new Gossip(gossipType, Member.deserialize(memberBuffer));
         } catch (IOException e) {
             e.printStackTrace();
             System.exit(1);
@@ -41,9 +39,7 @@ public class Gossip implements Comparable<Gossip> {
     byte[] serialize() {
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream(); DataOutputStream dos = new DataOutputStream(baos)) {
             dos.writeInt(gossipType.getValue());
-            dos.write(member.getAddress().getAddress());
-            dos.writeInt(member.getPort());
-            dos.writeInt(incarnationNumber);
+            dos.write(member.serialize());
 
             piggybackCount.incrementAndGet();
 
