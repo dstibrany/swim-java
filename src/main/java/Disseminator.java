@@ -56,7 +56,7 @@ public class Disseminator {
                 }
 
                 if (gossip.getMember().equals(self) && gossip.getGossipType() == GossipType.SUSPECT) {
-                    alive(self);
+                    createAliveGossip(self);
                     continue;
                 }
 
@@ -67,8 +67,7 @@ public class Disseminator {
         }
     }
 
-    // TODO: more accurate name
-    void suspect(Member m) {
+    void createSuspectGossip(Member m) {
         Lock mutex = getMutex(m);
         mutex.lock();
         try {
@@ -79,15 +78,13 @@ public class Disseminator {
         }
     }
 
-    // TODO: more accurate name
-    private void alive(Member m) {
+    private void createAliveGossip(Member m) {
         m.incrementAndGetIncarnationNumber();
         Gossip alive = new Gossip(GossipType.ALIVE, m);
         mergeItem(alive);
     }
 
-    // TODO: more accurate name
-    private void confirm(Member m) {
+    private void createConfirmGossip(Member m) {
         Lock mutex = getMutex(m);
         mutex.lock();
         try {
@@ -117,17 +114,11 @@ public class Disseminator {
         }
     }
 
-    private Lock getMutex(Member m) {
-        Lock newMutexIfAbsent = new ReentrantLock();
-        Lock existingMutex = mutexes.putIfAbsent(m, newMutexIfAbsent);
-        return (existingMutex == null) ? newMutexIfAbsent : existingMutex;
-    }
-
     private void startSuspectTimer(Member m) {
         if (suspectTimers.get(m) != null) return;
 
         ScheduledFuture<?> future = executorService.schedule(() -> {
-            confirm(m);
+            createConfirmGossip(m);
         }, suspicionTimeout, TimeUnit.MILLISECONDS);
         suspectTimers.put(m, future);
     }
@@ -138,6 +129,12 @@ public class Disseminator {
             future.cancel(false);
             suspectTimers.remove(m);
         }
+    }
+
+    private Lock getMutex(Member m) {
+        Lock newMutexIfAbsent = new ReentrantLock();
+        Lock existingMutex = mutexes.putIfAbsent(m, newMutexIfAbsent);
+        return (existingMutex == null) ? newMutexIfAbsent : existingMutex;
     }
 
 }

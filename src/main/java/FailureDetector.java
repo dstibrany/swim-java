@@ -45,7 +45,7 @@ class FailureDetector {
             List<Member> pingReqTargets = memberList.getRandomMembers(conf.getSubgroupSize(), target);
             if (pingReqTargets.size() == 0) {
                 logger.info("There are no members to send a PING-REQ");
-                disseminator.suspect(target);
+                disseminator.createSuspectGossip(target);
                 Thread.sleep(conf.getProtocolPeriod());
                 return;
             }
@@ -55,7 +55,7 @@ class FailureDetector {
                 logger.info("Received ACK from Indirect Probes");
             } catch (TimeoutException e2) {
                 logger.info("Timeout waiting for Indirect Probes");
-                disseminator.suspect(target);
+                disseminator.createSuspectGossip(target);
             }
         }
         Thread.sleep(conf.getProtocolPeriod());

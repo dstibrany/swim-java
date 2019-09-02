@@ -38,7 +38,7 @@ class GossipBuffer {
         // gossip buffer slot is empty
         if (g2 == null) return true;
 
-        // we've already have this item
+        // we already have this item
         if (g1.equals(g2)) return false;
 
         if (g2.isExpired()) return true;

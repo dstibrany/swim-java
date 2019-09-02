@@ -29,7 +29,6 @@ public class SwimJava {
         conf = new Config();
         self = conf.getSelf();
         memberList = new MemberList(self);
-        memberList.add(self);
         disseminator = new Disseminator(memberList, conf);
         dispatcher = new Dispatcher(new TransportFactory(), disseminator, conf);
     }

@@ -47,7 +47,7 @@ class FailureDetectorTest {
 
         verify(dispatcher).ping(target, config.getReqTimeout());
         verify(dispatcher, never()).pingReq(anyList(), any(Member.class), anyInt());
-        verify(disseminator, never()).suspect(target);
+        verify(disseminator, never()).createSuspectGossip(target);
     }
 
     @Test
@@ -63,7 +63,7 @@ class FailureDetectorTest {
 
         inOrder.verify(dispatcher).ping(target, config.getReqTimeout());
         inOrder.verify(dispatcher).pingReq(Collections.singletonList(pingReqTarget), target, config.getReqTimeout());
-        verify(disseminator, never()).suspect(target);
+        verify(disseminator, never()).createSuspectGossip(target);
     }
 
     @Test
@@ -80,7 +80,7 @@ class FailureDetectorTest {
 
         inOrder.verify(dispatcher).ping(target, config.getReqTimeout());
         inOrder.verify(dispatcher).pingReq(Arrays.asList(pingReqTarget), target, config.getReqTimeout());
-        inOrder.verify(disseminator).suspect(target);
+        inOrder.verify(disseminator).createSuspectGossip(target);
     }
 
 
@@ -90,7 +90,7 @@ class FailureDetectorTest {
 
         verify(dispatcher, never()).ping(any(Member.class), anyInt());
         verify(dispatcher, never()).pingReq(anyList(), any(Member.class), anyInt());
-        verify(disseminator, never()).suspect(any(Member.class));
+        verify(disseminator, never()).createSuspectGossip(any(Member.class));
     }
 
     @Test
@@ -103,6 +103,6 @@ class FailureDetectorTest {
 
         verify(dispatcher).ping(target, config.getReqTimeout());
         verify(dispatcher, never()).pingReq(anyList(), any(Member.class), anyInt());
-        verify(disseminator).suspect(target);
+        verify(disseminator).createSuspectGossip(target);
     }
 }
