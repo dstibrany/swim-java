@@ -38,6 +38,22 @@ class GossipBufferTest {
     }
 
     @Test
+    void getItemsReturnsNewList() {
+        ConcurrentHashMap<Member, Gossip> buffer = buildBuffer();
+        GossipBuffer gb = new GossipBuffer(buffer);
+
+        List<Gossip> newList = gb.getItems(buffer.size(), buffer.size());
+
+        assertNotSame(buffer.values(), newList);
+        assertEquals(newList.size(), buffer.size());
+
+        Member m = new Member(8888, InetAddress.getLoopbackAddress());
+        buffer.put(m, new Gossip(GossipType.ALIVE, m));
+
+        assertNotEquals(newList.size(), buffer.size());
+    }
+
+    @Test
     void getItemsReturnsCorrectNumberOfItems() {
         GossipBuffer gb = new GossipBuffer(buildBuffer());
 
@@ -83,10 +99,19 @@ class GossipBufferTest {
     @Test
     void getItemsExpiresGossip() {
         ConcurrentHashMap<Member, Gossip> bufferElements = buildBuffer();
-
         GossipBuffer gb = new GossipBuffer(bufferElements);
 
-        assertFalse(true);
+        for (int i = 0; i < (Math.log(bufferElements.size()) / Math.log(2)); i++) {
+            bufferElements.values().forEach(g -> assertFalse(g.isExpired()));
+            List<Gossip> items = gb.getItems(bufferElements.size(), bufferElements.size());
+            for (Gossip g : items) {
+                g.serialize();
+            }
+        }
+
+        for (Gossip g : bufferElements.values()) {
+            assertTrue(g.isExpired());
+        }
     }
 
     @Test
@@ -132,7 +157,7 @@ class GossipBufferTest {
     }
 
     @Test
-    void aliveOverrides() {
+    void testAliveOverrides() {
         Member m0 = new Member(5555, InetAddress.getLoopbackAddress());
         Member m1 = new Member(5555, InetAddress.getLoopbackAddress(), 1);
         Gossip alive1 = new Gossip(GossipType.ALIVE, m1);
@@ -150,7 +175,7 @@ class GossipBufferTest {
     }
 
     @Test
-    void suspectOverrides() {
+    void testSuspectOverrides() {
         Member m0 = new Member(5555, InetAddress.getLoopbackAddress());
         Member m1 = new Member(5555, InetAddress.getLoopbackAddress(), 1);
         Gossip suspect_inc1 = new Gossip(GossipType.SUSPECT, m1);
@@ -170,7 +195,7 @@ class GossipBufferTest {
     }
 
     @Test
-    void confirmOverrides() {
+    void testConfirmOverrides() {
         Member m0 = new Member(5555, InetAddress.getLoopbackAddress());
         Member m1 = new Member(5555, InetAddress.getLoopbackAddress(), 1);
         Gossip suspect_inc1 = new Gossip(GossipType.SUSPECT, m1);
@@ -191,7 +216,7 @@ class GossipBufferTest {
     }
 
     @Test
-    void joinOverrides() {
+    void testJoinOverrides() {
         Member m1 = new Member(5555, InetAddress.getLoopbackAddress());
         Gossip suspect_inc1 = new Gossip(GossipType.SUSPECT, m1);
         Gossip suspect_inc0 = new Gossip(GossipType.SUSPECT, m1);
