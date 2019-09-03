@@ -79,7 +79,7 @@ public class Disseminator {
             mutex.unlock();
         }
     }
-
+    
     private void createAliveGossip(Member m) {
         m.incrementAndGetIncarnationNumber();
         Gossip alive = new Gossip(GossipType.ALIVE, m);
@@ -121,7 +121,7 @@ public class Disseminator {
 
         ScheduledFuture<?> future = executorService.schedule(() -> {
             createConfirmGossip(m);
-            // TODO: remove timer
+            suspectTimers.remove(m);
         }, suspicionTimeout, TimeUnit.MILLISECONDS);
         suspectTimers.put(m, future);
     }
