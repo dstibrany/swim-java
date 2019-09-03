@@ -79,6 +79,7 @@ class GossipBufferTest {
             assertFalse(g.isExpired());
         }
     }
+
     @Test
     void getItemsReturnsCorrectOrder() {
         ConcurrentHashMap<Member, Gossip> bufferElements = buildBuffer();
