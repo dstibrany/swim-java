@@ -16,12 +16,13 @@ public class Disseminator {
     private final Logger logger = LogManager.getLogger();
     private final Member self;
     private final MemberList memberList;
-    private final GossipBuffer gossipBuffer = new GossipBuffer(new ConcurrentHashMap<>());
+    private final GossipBuffer gossipBuffer;
     private final ScheduledExecutorService executorService =
             Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors());
 
-    Disseminator(MemberList memberList, Config conf) {
+    Disseminator(MemberList memberList, GossipBuffer gossipBuffer, Config conf) {
         this.memberList = memberList;
+        this.gossipBuffer = gossipBuffer;
         maxGossipPerMessage = conf.getMaxGossipPerMessage();
         self = conf.getSelf();
         suspicionTimeout = conf.getSuspicionTimeout();
@@ -120,6 +121,7 @@ public class Disseminator {
 
         ScheduledFuture<?> future = executorService.schedule(() -> {
             createConfirmGossip(m);
+            // TODO: remove timer
         }, suspicionTimeout, TimeUnit.MILLISECONDS);
         suspectTimers.put(m, future);
     }

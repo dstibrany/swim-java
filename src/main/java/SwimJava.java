@@ -2,10 +2,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.List;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import java.util.concurrent.*;
 
 public class SwimJava {
     private static Member self;
@@ -29,7 +26,7 @@ public class SwimJava {
         conf = new Config();
         self = conf.getSelf();
         memberList = new MemberList(self);
-        disseminator = new Disseminator(memberList, conf);
+        disseminator = new Disseminator(memberList, new GossipBuffer(new ConcurrentHashMap<>()), conf);
         dispatcher = new Dispatcher(new TransportFactory(), disseminator, conf);
     }
 
