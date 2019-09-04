@@ -17,8 +17,7 @@ public class Disseminator {
     private final Member self;
     private final MemberList memberList;
     private final GossipBuffer gossipBuffer;
-    private final ScheduledExecutorService executorService =
-            Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors());
+    private final ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
 
     Disseminator(MemberList memberList, GossipBuffer gossipBuffer, Config conf) {
         this.memberList = memberList;
@@ -79,7 +78,7 @@ public class Disseminator {
             mutex.unlock();
         }
     }
-    
+
     private void createAliveGossip(Member m) {
         m.incrementAndGetIncarnationNumber();
         Gossip alive = new Gossip(GossipType.ALIVE, m);
@@ -118,7 +117,6 @@ public class Disseminator {
 
     private void startSuspectTimer(Member m) {
         if (suspectTimers.get(m) != null) return;
-
         ScheduledFuture<?> future = executorService.schedule(() -> {
             createConfirmGossip(m);
             suspectTimers.remove(m);
@@ -139,5 +137,4 @@ public class Disseminator {
         Lock existingMutex = mutexes.putIfAbsent(m, newMutexIfAbsent);
         return (existingMutex == null) ? newMutexIfAbsent : existingMutex;
     }
-
 }

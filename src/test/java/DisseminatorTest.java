@@ -1,6 +1,7 @@
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.omg.CORBA.Any;
 
 import java.net.InetAddress;
 import java.util.Arrays;
@@ -10,6 +11,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.mockito.Mockito.*;
 
 class DisseminatorTest {
@@ -23,14 +25,14 @@ class DisseminatorTest {
     @BeforeEach
     void setUp() {
         config = mock(Config.class);
+        self = new Member(5555, InetAddress.getLoopbackAddress());
+        when(config.getMaxGossipPerMessage()).thenReturn(6);
+        when(config.getSelf()).thenReturn(self);
+        when(config.getSuspicionTimeout()).thenReturn(100);
+
         gossipBuffer = mock(GossipBuffer.class);
         memberList = mock(MemberList.class);
         disseminator = new Disseminator(memberList, gossipBuffer, config);
-        self = new Member(5555, InetAddress.getLoopbackAddress());
-
-        when(config.getMaxGossipPerMessage()).thenReturn(6);
-        when(config.getSelf()).thenReturn(self);
-        when(config.getSuspicionTimeout()).thenReturn(5000);
     }
 
     @Test
@@ -93,7 +95,7 @@ class DisseminatorTest {
     void mergeIfUnknownMemberWithJoinGossip() {
         Member m1 = new Member(1234, InetAddress.getLoopbackAddress());
         Member unknown = new Member(1235, InetAddress.getLoopbackAddress());
-        MemberList ml1 = new MemberList(new HashSet<>(Arrays.asList(m1)), self);
+        MemberList ml1 = new MemberList(new HashSet<>(Collections.singletonList(m1)), self);
         Disseminator d = new Disseminator(ml1, gossipBuffer, config);
         Gossip g = new Gossip(GossipType.JOIN, unknown);
 
@@ -105,7 +107,7 @@ class DisseminatorTest {
     @Test
     void createAliveGossipIfSelfIsSuspected() {
         Member m1 = new Member(1234, InetAddress.getLoopbackAddress());
-        MemberList ml1 = new MemberList(new HashSet<>(Arrays.asList(m1)), self);
+        MemberList ml1 = new MemberList(new HashSet<>(Collections.singletonList(m1)), self);
         Disseminator d = new Disseminator(ml1, gossipBuffer, config);
         ArgumentCaptor<Gossip> argument = ArgumentCaptor.forClass(Gossip.class);
         Gossip g = new Gossip(GossipType.SUSPECT, self);
@@ -121,7 +123,31 @@ class DisseminatorTest {
     }
 
     @Test
-    void mergeGossip() {
+    void testSuccessfulMerge() {
+        Gossip g1 = new Gossip(GossipType.ALIVE, self);
+        Gossip g2 = new Gossip(GossipType.CONFIRM, self);
+        List<Gossip> gossipList = Arrays.asList(g1, g2);
+        when(gossipBuffer.mergeItem(any(Gossip.class))).thenReturn(true);
+        when(memberList.contains(any(Member.class))).thenReturn(true);
+
+        disseminator.mergeGossip(gossipList);
+
+        verify(gossipBuffer, times(gossipList.size())).mergeItem(any(Gossip.class));
+        verify(memberList, times(gossipList.size())).updateMemberState(any(Gossip.class));
+    }
+
+    @Test
+    void testUnsuccessfulMerge() {
+        Gossip g1 = new Gossip(GossipType.ALIVE, self);
+        Gossip g2 = new Gossip(GossipType.CONFIRM, self);
+        List<Gossip> gossipList = Arrays.asList(g1, g2);
+        when(gossipBuffer.mergeItem(any(Gossip.class))).thenReturn(false);
+        when(memberList.contains(any(Member.class))).thenReturn(true);
+
+        disseminator.mergeGossip(gossipList);
+
+        verify(gossipBuffer, times(gossipList.size())).mergeItem(any(Gossip.class));
+        verify(memberList, never()).updateMemberState(any(Gossip.class));
     }
 
     @Test
@@ -133,11 +159,78 @@ class DisseminatorTest {
         disseminator.createSuspectGossip(m1);
 
         verify(gossipBuffer).mergeItem(argument.capture());
-        verify(memberList).updateMemberState(argument.capture());
         List<Gossip> arguments = argument.getAllValues();
         for (Gossip g : arguments) {
             assertEquals(GossipType.SUSPECT, g.getGossipType());
             assertEquals(m1, g.getMember());
         }
+    }
+
+    @Test
+    void suspectTimerCausesConfirmGossip() {
+        Member m1 = new Member(8888, InetAddress.getLoopbackAddress());
+        Gossip g1 = new Gossip(GossipType.SUSPECT, m1);
+        List<Gossip> gossipList = Collections.singletonList(g1);
+        when(gossipBuffer.mergeItem(any(Gossip.class))).thenReturn(true);
+        when(memberList.contains(any(Member.class))).thenReturn(true);
+        ArgumentCaptor<Gossip> gossipBufferArg = ArgumentCaptor.forClass(Gossip.class);
+        ArgumentCaptor<Gossip> memberListArg = ArgumentCaptor.forClass(Gossip.class);
+
+        disseminator.mergeGossip(gossipList);
+
+        verify(gossipBuffer, timeout(1000).times(2)).mergeItem(gossipBufferArg.capture());
+        verify(memberList, timeout(1000).times(2)).updateMemberState(memberListArg.capture());
+        verifyNoMoreInteractions(gossipBuffer);
+
+        assertEquals(GossipType.CONFIRM, gossipBufferArg.getValue().getGossipType());
+        assertEquals(m1, gossipBufferArg.getValue().getMember());
+        assertEquals(GossipType.CONFIRM, memberListArg.getValue().getGossipType());
+        assertEquals(m1, memberListArg.getValue().getMember());
+    }
+
+    @Test
+    void suspectTimerCanBeCancelled() throws InterruptedException {
+        Member m1 = new Member(8888, InetAddress.getLoopbackAddress());
+        Gossip g1 = new Gossip(GossipType.SUSPECT, m1);
+        Gossip g2 = new Gossip(GossipType.ALIVE, m1);
+        List<Gossip> gossipList = Arrays.asList(g1, g2);
+        when(gossipBuffer.mergeItem(any(Gossip.class))).thenReturn(true);
+        when(memberList.contains(any(Member.class))).thenReturn(true);
+        ArgumentCaptor<Gossip> gossipBufferArg = ArgumentCaptor.forClass(Gossip.class);
+        ArgumentCaptor<Gossip> memberListArg = ArgumentCaptor.forClass(Gossip.class);
+
+        disseminator.mergeGossip(gossipList);
+
+        Thread.sleep(config.getSuspicionTimeout() + 100);
+        verify(gossipBuffer, atLeastOnce()).mergeItem(gossipBufferArg.capture());
+        verify(memberList, atLeastOnce()).updateMemberState(memberListArg.capture());
+
+        for (Gossip g : gossipBufferArg.getAllValues()) {
+            assertNotEquals(GossipType.CONFIRM, g.getGossipType());
+        }
+        for (Gossip g : memberListArg.getAllValues()) {
+            assertNotEquals(GossipType.CONFIRM, g.getGossipType());
+        }
+    }
+
+
+    @Test
+    void differentMemberDoesNotCancelSuspicionTimer() throws InterruptedException {
+        Member m1 = new Member(8888, InetAddress.getLoopbackAddress());
+        Gossip g1 = new Gossip(GossipType.SUSPECT, m1);
+        Gossip g2 = new Gossip(GossipType.ALIVE, self);
+        List<Gossip> gossipList = Arrays.asList(g1, g2);
+        when(gossipBuffer.mergeItem(any(Gossip.class))).thenReturn(true);
+        when(memberList.contains(any(Member.class))).thenReturn(true);
+        ArgumentCaptor<Gossip> gossipBufferArg = ArgumentCaptor.forClass(Gossip.class);
+
+        disseminator.mergeGossip(gossipList);
+
+        Thread.sleep(config.getSuspicionTimeout() + 100);
+        verify(gossipBuffer, atLeastOnce()).mergeItem(gossipBufferArg.capture());
+
+        Gossip lastGossip = gossipBufferArg.getValue();
+        assertEquals(GossipType.CONFIRM, lastGossip.getGossipType());
+        assertEquals(m1, lastGossip.getMember());
     }
 }

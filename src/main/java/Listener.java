@@ -23,12 +23,14 @@ public class Listener {
 
     void listenerProtocol() throws InterruptedException, ExecutionException {
         Message message = dispatcher.receive();
+
         switch (message.getMessageType()) {
             case PING:
                 logger.info("Received PING from {}", message.getMember());
                 dispatcher.ack(message.getMember());
                 logger.info("Sent ACK to {}", message.getMember());
                 break;
+
             case PING_REQ:
                 logger.info("Received PING-REQ from {} for {}",
                         message.getMember(),
@@ -41,13 +43,16 @@ public class Listener {
                     logger.info("Timeout waiting for indirect probe to {}", message.getMember());
                 }
                 break;
+
             case ACK:
                 logger.info("Received ACK from {}...dropping", message.getMember());
                 break;
+
             case JOIN:
                 logger.info("Received JOIN from {}", message.getMember());
                 dispatcher.joinAck(message.getMember());
                 break;
+
             default:
                 logger.info("Dropping unknown message type");
                 break;

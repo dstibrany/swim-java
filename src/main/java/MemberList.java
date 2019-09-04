@@ -45,6 +45,7 @@ public class MemberList {
     void updateMemberState(Gossip gossip) {
         if (gossip.getGossipType() == GossipType.JOIN) {
             memberList.add(gossip.getMember());
+            // TODO: why not return here?
         }
 
         Member member = memberList.stream().filter(m -> m.equals(gossip.getMember())).findAny().orElse(null);
