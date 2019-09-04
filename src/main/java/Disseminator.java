@@ -80,7 +80,7 @@ public class Disseminator {
     }
 
     private void createAliveGossip(Member m) {
-        m.incrementAndGetIncarnationNumber();
+        m.incrementIncarnationNumber();
         Gossip alive = new Gossip(GossipType.ALIVE, m);
         mergeItem(alive);
     }

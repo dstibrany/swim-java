@@ -28,7 +28,7 @@ public class Listener {
             case PING:
                 logger.info("Received PING from {}", message.getMember());
                 dispatcher.ack(message.getMember());
-                logger.info("Sent ACK to {}", message.getMember());
+                logger.info("Sending ACK to {}", message.getMember());
                 break;
 
             case PING_REQ:
@@ -38,7 +38,7 @@ public class Listener {
                 try {
                     dispatcher.ping(message.getIndirectProbeMember(), conf.getReqTimeout());
                     dispatcher.ack(message.getMember());
-                    logger.info("Sent ACK to {}", message.getMember());
+                    logger.info("Sending ACK to {}", message.getMember());
                 } catch (TimeoutException e) {
                     logger.info("Timeout waiting for indirect probe to {}", message.getMember());
                 }

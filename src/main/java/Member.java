@@ -63,8 +63,8 @@ public class Member {
         incarnationNumber.set(value);
     }
 
-    int incrementAndGetIncarnationNumber() {
-        return incarnationNumber.incrementAndGet();
+    void incrementIncarnationNumber() {
+        incarnationNumber.incrementAndGet();
     }
 
     byte[] serialize() {
