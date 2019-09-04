@@ -9,6 +9,7 @@ public enum MessageType {
     JOIN_ACK(5),
     UNKNOWN(99);
 
+    static final int BYTES = Integer.BYTES;
     private static final Map<Integer, MessageType> lookup = new HashMap<>();
 
     static {

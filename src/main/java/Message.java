@@ -3,7 +3,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Message {
-    static final int BYTES = Integer.BYTES + Member.BYTES + Integer.BYTES + (Gossip.BYTES * 6); // TODO: fix hardcoded 6
+    static final int BYTES = MessageType.BYTES + Member.BYTES + Integer.BYTES + (Gossip.BYTES * 6); // TODO: fix hardcoded 6
     private MessageType messageType;
     private Member member;
     private Member indirectProbeMember;
