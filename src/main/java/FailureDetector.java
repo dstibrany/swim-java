@@ -12,7 +12,6 @@ class FailureDetector {
     private final Dispatcher dispatcher;
     private final Config conf;
 
-    // TODO: Fix protocol period duration to not use Thread.sleep
     FailureDetector(MemberList memberList, Dispatcher dispatcher, Disseminator disseminator, Config conf) {
         this.memberList = memberList;
         this.dispatcher = dispatcher;
@@ -27,12 +26,13 @@ class FailureDetector {
     }
 
     void runProtocol() throws InterruptedException, ExecutionException {
+        long startTime = System.currentTimeMillis();
         logger.debug("{}", memberList);
 
         List<Member> targetList = memberList.getRandomMembers(1, null);
         if (targetList.size() == 0) {
             logger.info("There are no members to PING");
-            Thread.sleep(conf.getProtocolPeriod());
+            sleep(startTime);
             return;
         }
         Member target = targetList.get(0);
@@ -43,13 +43,15 @@ class FailureDetector {
             logger.info("Received ACK from {}", target);
         } catch (TimeoutException e) {
             logger.info("Timeout while waiting for ACK from {}", target);
+
             List<Member> pingReqTargets = memberList.getRandomMembers(conf.getSubgroupSize(), target);
             if (pingReqTargets.size() == 0) {
                 logger.info("There are no members to send a PING-REQ");
                 disseminator.createSuspectGossip(target);
-                Thread.sleep(conf.getProtocolPeriod());
+                sleep(startTime);
                 return;
             }
+
             try {
                 logger.info("Sending PING-REQ to {} hosts", pingReqTargets.size());
                 dispatcher.pingReq(pingReqTargets, target, conf.getReqTimeout());
@@ -59,6 +61,10 @@ class FailureDetector {
                 disseminator.createSuspectGossip(target);
             }
         }
-        Thread.sleep(conf.getProtocolPeriod());
+        sleep(startTime);
+    }
+
+    private void sleep(long startTime) throws InterruptedException {
+        Thread.sleep(conf.getProtocolPeriod() - (System.currentTimeMillis() - startTime));
     }
 }
