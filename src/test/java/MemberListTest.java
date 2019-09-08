@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.mock;
 
 class MemberListTest {
     Set<Member> members;
