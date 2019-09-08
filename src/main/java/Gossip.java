@@ -4,7 +4,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class Gossip implements Comparable<Gossip> {
-    static final int BYTES = Integer.BYTES + GossipType.BYTES + Member.BYTES;
+    static final int BYTES = GossipType.BYTES + Member.BYTES;
     private final GossipType gossipType;
     private final Member member;
     private final int incarnationNumber;
