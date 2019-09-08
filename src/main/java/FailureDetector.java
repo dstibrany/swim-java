@@ -12,6 +12,7 @@ class FailureDetector {
     private final Dispatcher dispatcher;
     private final Config conf;
 
+    // TODO: Fix protocol period duration to not use Thread.sleep
     FailureDetector(MemberList memberList, Dispatcher dispatcher, Disseminator disseminator, Config conf) {
         this.memberList = memberList;
         this.dispatcher = dispatcher;

@@ -1,3 +1,6 @@
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -5,6 +8,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class MemberList {
+    private final Logger logger = LogManager.getLogger();
     private final Set<Member> members;
     private final Member self;
 
@@ -37,8 +41,9 @@ public class MemberList {
     }
 
     void updateMemberState(Gossip gossip) {
-        if (gossip.getGossipType() == GossipType.JOIN) {
+        if (gossip.getGossipType() == GossipType.JOIN && !members.contains(gossip.getMember())) {
             members.add(gossip.getMember());
+            logger.info("{} has joined", gossip.getMember());
             return;
         }
 
@@ -51,12 +56,15 @@ public class MemberList {
 
         switch (gossip.getGossipType()) {
             case ALIVE:
+                logger.info("Marking {} as ALIVE", gossip.getMember());
                 member.alive();
                 break;
             case SUSPECT:
+                logger.info("Marking {} as SUSPECT", gossip.getMember());
                 member.suspect();
                 break;
             case CONFIRM:
+                logger.info("Marking {} as DEAD", gossip.getMember());
                 members.remove(member);
                 break;
         }

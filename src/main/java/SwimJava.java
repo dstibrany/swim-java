@@ -30,22 +30,32 @@ public class SwimJava {
         dispatcher = new Dispatcher(new TransportFactory(), disseminator, conf);
     }
 
+    // TODO: handle joins as second seed node
     private static void join() throws InterruptedException, ExecutionException {
-        Future<?> future = executorService.submit(() -> {
-            List<Member> seeds = conf.getSeeds();
-            if (!seeds.contains(self)) {
-                Member seed = seeds.get(0); // TODO: round robin
+        List<Member> seeds = conf.getSeeds();
+
+        if (!seeds.contains(self)) {
+            int connectAttempts = 0;
+
+            for (Member seed : seeds) {
+                connectAttempts++;
                 try {
                     logger.info("Joining cluster via seed node {}", seed);
                     dispatcher.join(seed, conf.getReqTimeout());
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    System.exit(1);
+                } catch (TimeoutException e) {
+                    if (connectAttempts < seeds.size()) {
+                        logger.warn("Failed to connect via seed node {}. Trying next seed node...", seed);
+                    } else {
+                        logger.error("Could not connect to any seed nodes, exiting.");
+                        System.exit(1);
+                    }
+                    continue;
                 }
+                break;
             }
-        });
-
-        future.get();
+        } else {
+            logger.info("Starting up cluster as seed node");
+        }
     }
 
     private static void startListener() {
