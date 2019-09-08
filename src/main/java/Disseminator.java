@@ -11,7 +11,7 @@ import java.util.concurrent.locks.ReentrantLock;
 public class Disseminator {
     private final int maxGossipPerMessage;
     private final int suspicionTimeout;
-    private final Map<Member, Lock> mutexes = new ConcurrentHashMap<>();
+    private final Map<Member, Lock> mutexes = new ConcurrentHashMap<>(); // TODO: remove old elements
     private final Map<Member, ScheduledFuture<?>> suspectTimers = new ConcurrentHashMap<>();
     private final Logger logger = LogManager.getLogger();
     private final Member self;

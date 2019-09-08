@@ -1,6 +1,7 @@
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class Message {
     static final int BYTES = MessageType.BYTES + Member.BYTES + Integer.BYTES + (Gossip.BYTES * 6); // TODO: fix hardcoded 6
@@ -57,22 +58,6 @@ public class Message {
         return message;
     }
 
-    MessageType getMessageType() {
-        return messageType;
-    }
-
-    Member getMember() {
-        return member;
-    }
-
-    Member getIndirectProbeMember() {
-        return indirectProbeMember;
-    }
-
-    List<Gossip> getGossipList() {
-        return gossipList;
-    }
-
     byte[] serialize() {
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream(); DataOutputStream dos = new DataOutputStream(baos)) {
             dos.writeInt(messageType.getValue());
@@ -90,4 +75,37 @@ public class Message {
             return null;
         }
     }
+
+    MessageType getMessageType() {
+        return messageType;
+    }
+
+    Member getMember() {
+        return member;
+    }
+
+    Member getIndirectProbeMember() {
+        return indirectProbeMember;
+    }
+
+    List<Gossip> getGossipList() {
+        return gossipList;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Message message = (Message) o;
+        return messageType == message.messageType &&
+                member.equals(message.member) &&
+                Objects.equals(indirectProbeMember, message.indirectProbeMember) &&
+                gossipList.equals(message.gossipList);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(messageType, member, indirectProbeMember, gossipList);
+    }
+
 }

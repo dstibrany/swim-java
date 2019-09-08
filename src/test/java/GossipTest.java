@@ -1,61 +1,60 @@
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.io.ByteArrayOutputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.InetAddress;
 
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class GossipTest {
     private Member member;
-    private int incarnationNumber;
 
     @BeforeEach
     void setUp() {
         member = new Member(1234, InetAddress.getLoopbackAddress());
-        incarnationNumber = 0;
-    }
-
-    private byte[] createMessageBytes(GossipType type) throws IOException {
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        DataOutputStream dos = new DataOutputStream(baos);
-        dos.writeInt(type.getValue());
-        dos.write(member.getAddress().getAddress());
-        dos.writeInt(member.getPort());
-        dos.writeInt(incarnationNumber);
-        return baos.toByteArray();
     }
 
     @Test
-    void deserializeAlive() throws IOException {
-        Gossip alive = Gossip.deserialize(createMessageBytes(GossipType.ALIVE));
-        assertEquals(GossipType.ALIVE, alive.getGossipType());
+    void deserializeAlive() {
+        Gossip alive = new Gossip(GossipType.ALIVE, member);
+        byte[] bytes = alive.serialize();
+        assertEquals(alive, Gossip.deserialize(bytes));
     }
 
     @Test
-    void deserializeSuspect() throws IOException {
-        Gossip suspect = Gossip.deserialize(createMessageBytes(GossipType.SUSPECT));
-        assertEquals(GossipType.SUSPECT, suspect.getGossipType());
+    void deserializeSuspect() {
+        Gossip suspect = new Gossip(GossipType.SUSPECT, member);
+        byte[] bytes = suspect.serialize();
+        assertEquals(suspect, Gossip.deserialize(bytes));
     }
 
     @Test
     void deserializeConfirm() throws IOException {
-        Gossip confirm = Gossip.deserialize(createMessageBytes(GossipType.CONFIRM));
-        assertEquals(GossipType.CONFIRM, confirm.getGossipType());
+        Gossip confirm = new Gossip(GossipType.CONFIRM, member);
+        byte[] bytes = confirm.serialize();
+        assertEquals(confirm, Gossip.deserialize(bytes));
     }
 
     @Test
     void deserializeUnknown() {
-        Gossip unknown = Gossip.deserialize(new byte[256]);
-        assertEquals(GossipType.UNKNOWN, unknown.getGossipType());
+        Gossip unknown = new Gossip(GossipType.UNKNOWN, member);
+        byte[] bytes = unknown.serialize();
+        assertEquals(unknown, Gossip.deserialize(bytes));
     }
 
     @Test
-    void serializeAlive() throws IOException {
+    void checkBytes() {
         Gossip alive = new Gossip(GossipType.ALIVE, member);
-        assertArrayEquals(createMessageBytes(GossipType.ALIVE), alive.serialize());
+        assertEquals(Gossip.BYTES, alive.serialize().length);
     }
+
+    @Test
+    void testEqualsAndHashCode() {
+        Gossip g1 = new Gossip(GossipType.ALIVE, member);
+        Gossip g2 = new Gossip(GossipType.ALIVE, member);
+        assertTrue(g1.equals(g2) && g2.equals(g1));
+        assertEquals(g1.hashCode(), g2.hashCode());
+    }
+
 }

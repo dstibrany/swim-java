@@ -4,51 +4,45 @@ import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-/*
-- update list
-- remove from list
-- reorder
-- get k random
- */
 public class MemberList {
-    private final Set<Member> memberList;
+    private final Set<Member> members;
     private final Member self;
 
     MemberList(Set<Member> list, Member self) {
-        memberList = list;
+        members = list;
         this.self = self;
-        memberList.add(self);
+        members.add(self);
     }
 
     MemberList(Member self) {
-        memberList = ConcurrentHashMap.newKeySet();
+        members = ConcurrentHashMap.newKeySet();
         this.self = self;
-        memberList.add(self);
+        members.add(self);
     }
 
     void add(Member m) {
-        memberList.add(m);
+        members.add(m);
     }
 
     boolean contains(Member m) {
-        return memberList.contains(m);
+        return members.contains(m);
     }
 
     List<Member> getAsList() {
-        return new ArrayList<>(memberList);
+        return new ArrayList<>(members);
     }
 
-    public int size() {
-        return memberList.size();
+    int size() {
+        return members.size();
     }
 
     void updateMemberState(Gossip gossip) {
         if (gossip.getGossipType() == GossipType.JOIN) {
-            memberList.add(gossip.getMember());
-            // TODO: why not return here?
+            members.add(gossip.getMember());
+            return;
         }
 
-        Member member = memberList.stream().filter(m -> m.equals(gossip.getMember())).findAny().orElse(null);
+        Member member = get(gossip.getMember());
         if (member == null) return;
 
         if (gossip.getMember().getIncarnationNumber() > member.getIncarnationNumber()) {
@@ -63,7 +57,7 @@ public class MemberList {
                 member.suspect();
                 break;
             case CONFIRM:
-                memberList.remove(member);
+                members.remove(member);
                 break;
         }
     }
@@ -99,5 +93,10 @@ public class MemberList {
         output.append("]");
 
         return output.toString();
+    }
+
+    // TODO: this is O(n)
+    private Member get(Member member) {
+        return members.stream().filter(m -> m.equals(member)).findAny().orElse(null);
     }
 }

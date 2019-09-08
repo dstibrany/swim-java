@@ -5,14 +5,68 @@ import java.net.InetAddress;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.mock;
 
 class MemberListTest {
+    Set<Member> members;
+    private Member self;
+    private MemberList memberList;
 
     @BeforeEach
     void setUp() {
+        self = new Member(5555, InetAddress.getLoopbackAddress());
+        members = new HashSet<>();
+        memberList = new MemberList(members, self);
+    }
+
+    @Test
+    void updateMemberStateOnJoin() {
+        Member newMember = new Member(5556, InetAddress.getLoopbackAddress());
+        Gossip g1 = new Gossip(GossipType.JOIN, newMember);
+
+        memberList.updateMemberState(g1);
+
+        assertEquals(2, members.size());
+    }
+
+    @Test
+    void updateMemberStateOnConfirm() {
+        Member memberToDelete = new Member(5556, InetAddress.getLoopbackAddress());
+        members.add(memberToDelete);
+        Gossip g1 = new Gossip(GossipType.CONFIRM, memberToDelete);
+
+        memberList.updateMemberState(g1);
+
+        assertFalse(members.contains(memberToDelete));
+    }
+
+    @Test
+    void testModifyIncarnationNumber() {
+        int originalIncarnationNumber = 5;
+        Member memberToModify = new Member(5556, InetAddress.getLoopbackAddress(), originalIncarnationNumber);
+        Member memberInGossip = new Member(5556, InetAddress.getLoopbackAddress(), originalIncarnationNumber + 1);
+        members.add(memberToModify);
+        Gossip g1 = new Gossip(GossipType.ALIVE, memberInGossip);
+
+        memberList.updateMemberState(g1);
+
+        assertEquals(originalIncarnationNumber + 1, memberToModify.getIncarnationNumber());
+    }
+
+    @Test
+    void testDoNotModifyIncarnationNumber() {
+        int originalIncarnationNumber = 5;
+        Member memberToModify = new Member(5556, InetAddress.getLoopbackAddress(), originalIncarnationNumber);
+        Member memberInGossip = new Member(5556, InetAddress.getLoopbackAddress(), originalIncarnationNumber - 1);
+        members.add(memberToModify);
+        Gossip g1 = new Gossip(GossipType.ALIVE, memberInGossip);
+
+        memberList.updateMemberState(g1);
+
+        assertEquals(originalIncarnationNumber, memberToModify.getIncarnationNumber());
     }
 
     @Test

@@ -4,7 +4,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 class GossipBuffer {
-    private final ConcurrentHashMap<Member, Gossip> bufferElements;
+    private final ConcurrentHashMap<Member, Gossip> bufferElements; // TODO: remove old elements
 
     GossipBuffer(ConcurrentHashMap<Member, Gossip> bufferElements) {
         this.bufferElements = bufferElements;
