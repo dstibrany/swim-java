@@ -14,6 +14,7 @@ class Config {
     private final int subgroupSize;
     private final Member self;
     private final int suspicionTimeout;
+    private final int joinTimeout;
     private InetAddress address;
 
     Config() {
@@ -49,6 +50,7 @@ class Config {
         maxGossipPerMessage = conf.getInt("swim-java.max_gossip_per_message");
         self = new Member(port, address);
         suspicionTimeout = conf.getInt("swim-java.suspicion_timeout");
+        joinTimeout = conf.getInt("swim-java.join_timeout");
     }
 
     int getPort() {
@@ -87,5 +89,8 @@ class Config {
         return suspicionTimeout;
     }
 
+    int getJoinTimeout() {
+        return joinTimeout;
+    }
 
 }

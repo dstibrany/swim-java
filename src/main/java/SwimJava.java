@@ -25,7 +25,7 @@ public class SwimJava {
     }
 
     private static void join() {
-        Join join = new Join(conf.getSeeds(), self, dispatcher, conf.getReqTimeout());
+        Join join = new Join(conf.getSeeds(), self, dispatcher, conf.getJoinTimeout());
         try {
             join.start();
         } catch (Exception e) {
