@@ -94,6 +94,7 @@ public class Dispatcher {
         f.get(timeout, TimeUnit.MILLISECONDS);
     }
 
+    // TODO: we need to send the full list, not just 6 members
     void joinAck(Member member) throws InterruptedException, ExecutionException {
         Message joinAck = new Message(MessageType.JOIN_ACK, member, disseminator.generateMemberList());
         Future<?> f = executor.submit(() -> {
