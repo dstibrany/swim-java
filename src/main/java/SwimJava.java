@@ -10,7 +10,7 @@ public class SwimJava {
 
     public static void main(String[] args) {
         init();
-        join();
+        joinCluster();
         startListener();
         startFailureDetector();
     }
@@ -24,7 +24,7 @@ public class SwimJava {
         dispatcher = new Dispatcher(new TransportFactory(), disseminator, conf);
     }
 
-    private static void join() {
+    private static void joinCluster() {
         Join join = new Join(conf.getSeeds(), self, dispatcher, conf.getJoinTimeout());
         try {
             join.start();
