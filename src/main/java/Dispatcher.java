@@ -6,19 +6,19 @@ import java.util.concurrent.*;
 public class Dispatcher {
     private final ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
     private final TransportFactory tf;
-    private final Transport listener;
+    private final Transport listenerTransport;
     private final Disseminator disseminator;
     private final Member self;
 
     Dispatcher(TransportFactory tf, Disseminator d, Config conf) {
         this.tf = tf;
         disseminator = d;
-        listener = tf.createListener(conf.getPort());
+        listenerTransport = tf.createListener(conf.getPort());
         self = conf.getSelf();
     }
 
     Message receive() {
-        Message message = listener.receive();
+        Message message = listenerTransport.receive();
         disseminator.mergeGossip(message.getGossipList());
         return message;
     }

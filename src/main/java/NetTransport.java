@@ -3,7 +3,7 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.SocketException;
 
-public class NetTransport implements Transport {
+class NetTransport implements Transport {
     private DatagramSocket socket;
 
     NetTransport(int port) {

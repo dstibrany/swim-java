@@ -28,12 +28,12 @@ class DispatcherTest {
         t = mock(NetTransport.class);
         disseminator = mock(Disseminator.class);
         inOrder = inOrder(t, disseminator);
-        TransportFactory tfStub = new TransportFactory() {
-            Transport create() {
+        TransportFactory tfStub = new NetTransportFactory() {
+            public Transport create() {
                 return t;
             }
 
-            Transport createListener(int port) {
+            public Transport createListener(int port) {
                 return t;
             }
         };
