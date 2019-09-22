@@ -2,7 +2,10 @@ import com.typesafe.config.ConfigFactory;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.PriorityQueue;
+import java.util.Queue;
 import java.util.concurrent.*;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
@@ -10,12 +13,12 @@ import java.util.concurrent.locks.ReentrantLock;
 
 class Simulation {
     private final PriorityQueue<SwimJavaWrapper> joinQueue;
-    private int round;
-    private List<SwimJavaWrapper> nodes;
     private final Lock roundLock = new ReentrantLock();
-    private final Condition joinCondition  = roundLock.newCondition();
+    private final Condition joinCondition = roundLock.newCondition();
     private final Map<Member, BlockingQueue<Message>> failureDetectorQueues = new ConcurrentHashMap<>();
     private final Map<Member, Queue<Message>> listenerQueues = new ConcurrentHashMap<>();
+    private int round;
+    private List<SwimJavaWrapper> nodes;
 
     Simulation() {
         nodes = new CopyOnWriteArrayList<>();
