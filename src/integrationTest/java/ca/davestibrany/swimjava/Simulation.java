@@ -14,13 +14,13 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 class Simulation {
-    private final PriorityQueue<SwimJavaWrapper> joinQueue;
+    private volatile int round;
+    private List<SwimJavaState> nodes;
     private final Lock roundLock = new ReentrantLock();
     private final Condition joinCondition = roundLock.newCondition();
+    private final PriorityQueue<SwimJavaState> joinQueue;
     private final Map<Member, BlockingQueue<Message>> failureDetectorQueues = new ConcurrentHashMap<>();
     private final Map<Member, Queue<Message>> listenerQueues = new ConcurrentHashMap<>();
-    private int round;
-    private List<SwimJavaWrapper> nodes;
 
     Simulation() {
         nodes = new CopyOnWriteArrayList<>();
@@ -28,34 +28,42 @@ class Simulation {
         round = 1;
     }
 
-    public static void main(String[] args) {
+    List<SwimJavaState> getState() {
+        return nodes;
+    }
+
+    void run() throws ExecutionException, InterruptedException {
         Logger logger = LogManager.getLogger();
         ExecutorService executorService = Executors.newFixedThreadPool(3);
-        Simulation s = new Simulation();
-        SwimJavaWrapper node1 = s.build(5555, 1);
-        SwimJavaWrapper node2 = s.build(5556, 2);
-        SwimJavaWrapper node3 = s.build(5557, 3);
+        SwimJavaState node1 = build(5555, 1);
+        SwimJavaState node2 = build(5556, 2);
+        SwimJavaState node3 = build(5557, 3);
 
-        executorService.submit(() -> {
-            while (true) {
+        Future<?> fdFuture = executorService.submit(() -> {
+            while (!executorService.isShutdown()) {
                 try {
-                    logger.info("Current round: {}", s.round);
+                    logger.info("Current round: {}", round);
 
-                    if (s.round == 5) {
-                        s.nodes.remove(node2);
+                    if (round == 5) {
+                        nodes.remove(node2);
                     }
 
-                    for (SwimJavaWrapper swimJavaWrapper : s.nodes) {
+                    if (round == 10) {
+                        executorService.shutdown();
+                        break;
+                    }
+
+                    for (SwimJavaState swimJavaWrapper : nodes) {
                         logger.info("Running FailureDetector for {}", swimJavaWrapper.self);
                         swimJavaWrapper.getFailureDetector().runProtocol();
                     }
 
-                    s.roundLock.lock();
+                    roundLock.lock();
                     try {
-                        s.round++;
-                        s.joinCondition.signal();
+                        round++;
+                        joinCondition.signal();
                     } finally {
-                        s.roundLock.unlock();
+                        roundLock.unlock();
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -65,12 +73,12 @@ class Simulation {
         });
 
         executorService.submit(() -> {
-            while (true) {
+            while (!executorService.isShutdown()) {
                 try {
-                    for (SwimJavaWrapper swimJavaWrapper : s.nodes) {
-                        swimJavaWrapper.getListener().listenerProtocol();
+                    for (SwimJavaState swimJavaState : nodes) {
+                        swimJavaState.getListener().listenerProtocol();
                     }
-                    Thread.sleep(500);
+                    Thread.sleep(100);
 
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -81,18 +89,18 @@ class Simulation {
 
         executorService.submit(() -> {
             try {
-                while (!s.joinQueue.isEmpty()) {
-                    SwimJavaWrapper swimJavaWrapper = s.joinQueue.poll();
-                    s.roundLock.lock();
+                while (!joinQueue.isEmpty() && !executorService.isShutdown()) {
+                    SwimJavaState swimJavaState = joinQueue.poll();
+                    roundLock.lock();
                     try {
-                        while (s.round != swimJavaWrapper.getJoinAtRound()) {
-                            s.joinCondition.await();
+                        while (round != swimJavaState.getJoinAtRound()) {
+                            joinCondition.await();
                         }
-                        logger.info("Running Join for {}", swimJavaWrapper.self);
-                        swimJavaWrapper.getJoin().start();
-                        s.nodes.add(swimJavaWrapper);
+                        logger.info("Running Join for {}", swimJavaState.self);
+                        swimJavaState.getJoin().start();
+                        nodes.add(swimJavaState);
                     } finally {
-                        s.roundLock.unlock();
+                        roundLock.unlock();
                     }
                 }
             } catch (Exception e) {
@@ -100,9 +108,11 @@ class Simulation {
                 System.exit(1);
             }
         });
+
+        fdFuture.get();
     }
 
-    private SwimJavaWrapper build(int port, int initRound) {
+    private SwimJavaState build(int port, int initRound) {
         com.typesafe.config.Config mergedConf = ConfigFactory
                 .parseString("swim-java.port=" + port)
                 .withFallback(ConfigFactory.defaultReference());
@@ -114,24 +124,22 @@ class Simulation {
         Join join = new Join(conf.getSeeds(), self, dispatcher, conf.getJoinTimeout());
         FailureDetector fd = new FailureDetector(memberList, dispatcher, disseminator, conf);
         Listener listener = new Listener(dispatcher, conf);
-        SwimJavaWrapper swimJavaWrapper = new SwimJavaWrapper(initRound, self, memberList, disseminator, dispatcher, fd, listener, join);
-        joinQueue.add(swimJavaWrapper);
-        return swimJavaWrapper;
+        SwimJavaState swimJavaState = new SwimJavaState(initRound, self, memberList, disseminator, dispatcher, fd, listener, join);
+        joinQueue.add(swimJavaState);
+        return swimJavaState;
     }
 
-    static class SwimJavaWrapper implements Comparable<SwimJavaWrapper> {
+    static class SwimJavaState implements Comparable<SwimJavaState> {
         private final Member self;
         private final MemberList memberList;
         private final Disseminator disseminator;
         private final Dispatcher dispatcher;
         private final FailureDetector failureDetector;
         private final int joinAtRound;
-
-
         private final Listener listener;
         private final Join join;
 
-        SwimJavaWrapper(
+        SwimJavaState(
                 int joinAtRound,
                 Member self,
                 MemberList memberList,
@@ -153,7 +161,7 @@ class Simulation {
         }
 
         @Override
-        public int compareTo(SwimJavaWrapper o) {
+        public int compareTo(SwimJavaState o) {
             return this.joinAtRound - o.getJoinAtRound();
         }
 
@@ -188,5 +196,9 @@ class Simulation {
         public Join getJoin() {
             return join;
         }
+    }
+
+    static class SwimJavaConfig {
+
     }
 }
