@@ -59,7 +59,7 @@ task integrationTest(type: Test) {
     mustRunAfter test
 }
 
-check.dependsOn integrationTest
+//check.dependsOn integrationTest
 
 gradle.projectsEvaluated {
     tasks.withType(JavaCompile) {
