@@ -6,6 +6,7 @@ plugins {
 version '1.0-SNAPSHOT'
 
 sourceCompatibility = 1.8
+targetCompatibility = 1.8
 
 repositories {
     mavenCentral()
@@ -14,6 +15,7 @@ repositories {
 sourceSets {
     integrationTest {
         java.srcDir file('src/integrationTest/java')
+        java.srcDir file('src/simulation/java')
         resources.srcDir file('src/integrationTest/resources')
         compileClasspath += sourceSets.main.output + configurations.testRuntimeClasspath
         runtimeClasspath += output + compileClasspath
