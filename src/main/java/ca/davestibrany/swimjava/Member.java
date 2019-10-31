@@ -57,6 +57,10 @@ public class Member {
         suspected.set(false);
     }
 
+    boolean isSuspected() {
+        return suspected.get();
+    }
+
     int getIncarnationNumber() {
         return incarnationNumber.get();
     }

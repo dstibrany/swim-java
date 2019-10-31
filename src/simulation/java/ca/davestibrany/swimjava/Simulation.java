@@ -17,16 +17,14 @@ class Simulation {
     private final Lock roundLock = new ReentrantLock();
     private final Condition joinCondition = roundLock.newCondition();
     private final PriorityQueue<SimulationNode> joinQueue;
+    private final Config conf;
 
     Simulation(List<SimulationNode> nodes, int maxRounds) {
         this.nodes = new CopyOnWriteArrayList<>();
         this.maxRounds = maxRounds;
         joinQueue = new PriorityQueue<>();
         joinQueue.addAll(nodes);
-    }
-
-    List<SimulationNode> getState() {
-        return nodes;
+        conf = nodes.get(0).getConf();
     }
 
     void run() throws ExecutionException, InterruptedException {
@@ -38,16 +36,19 @@ class Simulation {
                 try {
                     logger.info("Current round: {}", round);
 
-                    if (round == 5) {
-//                        nodes.remove(node2);
-                    }
-
-                    if (round == maxRounds) {
+                    if (round == maxRounds + 1) {
+                        logger.info("Exiting simulation");
                         executorService.shutdown();
                         break;
                     }
 
                     for (SimulationNode node : nodes) {
+                        if (round == node.getFailureTime()) {
+                            nodes.remove(node);
+                            node.alive = false;
+                            continue;
+                        }
+
                         logger.info("Running FailureDetector for {}", node.getSelf());
                         node.getFailureDetector().runProtocol();
                     }
@@ -72,7 +73,7 @@ class Simulation {
                     for (SimulationNode node : nodes) {
                         node.getListener().listenerProtocol();
                     }
-                    Thread.sleep(100);
+                    Thread.sleep(conf.getProtocolPeriod() / 10);
 
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -87,7 +88,7 @@ class Simulation {
                     SimulationNode node = joinQueue.poll();
                     roundLock.lock();
                     try {
-                        while (round != node.getJoinTime()) {
+                        while (round < node.getJoinTime()) {
                             joinCondition.await();
                         }
                         logger.info("Running Join for {}", node.getSelf());
@@ -105,6 +106,5 @@ class Simulation {
 
         fdFuture.get();
     }
-
 
 }

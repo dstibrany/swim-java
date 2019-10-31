@@ -56,7 +56,7 @@ public class Listener {
                 break;
 
             default:
-                logger.debug("Dropping unknown message type");
+                logger.trace("Dropping unknown message type");
                 break;
         }
     }

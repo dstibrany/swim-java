@@ -3,6 +3,7 @@ package ca.davestibrany.swimjava;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Random;
 import java.util.concurrent.*;
 
 public class Dispatcher {
@@ -37,7 +38,12 @@ public class Dispatcher {
             return ack;
         });
 
-        f.get(timeout, TimeUnit.MILLISECONDS);
+        try {
+            f.get(timeout, TimeUnit.MILLISECONDS);
+        } catch (TimeoutException e) {
+            f.cancel(true);
+            throw e;
+        }
     }
 
     void ack(Member member) throws InterruptedException, ExecutionException {
@@ -99,6 +105,7 @@ public class Dispatcher {
     // TODO: we need to send the full list, not just 6 members
     void joinAck(Member member) throws InterruptedException, ExecutionException {
         Message joinAck = new Message(MessageType.JOIN_ACK, member, disseminator.generateMemberList());
+
         Future<?> f = executor.submit(() -> {
             Transport t = tf.create();
             t.send(joinAck);

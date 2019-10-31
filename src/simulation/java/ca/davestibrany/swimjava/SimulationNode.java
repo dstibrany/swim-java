@@ -7,7 +7,6 @@ import java.util.concurrent.ConcurrentHashMap;
 class SimulationNode implements Comparable<SimulationNode> {
     private int joinTime;
     private int failureTime;
-    private int port;
     private Config conf;
     private FailureDetector fd;
     private Listener listener;
@@ -16,45 +15,38 @@ class SimulationNode implements Comparable<SimulationNode> {
     private Disseminator disseminator;
     private MemberList memberList;
     private Member self;
-
-    private SimulationNode() {
-
-    }
+    volatile boolean alive = true;
 
      int getJoinTime() {
         return joinTime;
     }
 
-    public int getFailureTime() {
+     int getFailureTime() {
         return failureTime;
     }
 
-    public Member getSelf() {
+     Member getSelf() {
         return self;
     }
 
-    public MemberList getMemberList() {
+     MemberList getMemberList() {
         return memberList;
     }
 
-    public Disseminator getDisseminator() {
-        return disseminator;
-    }
-
-    public Dispatcher getDispatcher() {
-        return dispatcher;
-    }
-
-    public FailureDetector getFailureDetector() {
+     FailureDetector getFailureDetector() {
         return fd;
     }
 
-    public Listener getListener() {
+     Listener getListener() {
         return listener;
     }
 
-    public Join getJoin() {
+     Join getJoin() {
         return join;
+    }
+
+    Config getConf() {
+        return conf;
     }
 
     @Override
@@ -63,10 +55,9 @@ class SimulationNode implements Comparable<SimulationNode> {
     }
 
     static class Builder {
-        private int joinTime;
+        private int joinTime = 1;
         private int failureTime;
-        private int port;
-        private SimulationQueues queues;
+        private double dropProbability;
 
         Builder withJoinTime(int joinTime) {
            this.joinTime = joinTime;
@@ -78,9 +69,12 @@ class SimulationNode implements Comparable<SimulationNode> {
             return this;
         }
 
+        Builder withDropProbability(double dropProbability) {
+            this.dropProbability = dropProbability;
+            return this;
+        }
+
         SimulationNode build(int port, SimulationQueues queues) {
-            this.port = port;
-            this.queues = queues;
 
             com.typesafe.config.Config mergedConf = ConfigFactory
                     .parseString("swim-java.port=" + port)
@@ -89,13 +83,12 @@ class SimulationNode implements Comparable<SimulationNode> {
             SimulationNode node = new SimulationNode();
             node.failureTime = this.failureTime;
             node.joinTime = this.joinTime;
-            node.port = this.port;
             node.conf = new Config(mergedConf);
             node.self = node.conf.getSelf();
             node.memberList = new MemberList(node.self);
             node.disseminator = new Disseminator(node.memberList, new GossipBuffer(new ConcurrentHashMap<>()), node.conf);
             node.dispatcher = new Dispatcher(
-                    new TestTransportFactory(node.self, queues.getListenerQueues(), queues.getFailureDetectorQueues()),
+                    new TestTransportFactory(node.self, queues.getListenerQueues(), queues.getFailureDetectorQueues(), dropProbability),
                     node.disseminator,
                     node.conf
             );

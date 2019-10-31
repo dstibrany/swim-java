@@ -32,7 +32,9 @@ public class Disseminator {
     List<Gossip> generateMemberList() {
         List<Gossip> gossipList = new ArrayList<>();
         for (Member member : memberList.getAsList()) {
-            gossipList.add(new Gossip(GossipType.ALIVE, member));
+            gossipList.add(new Gossip(
+                    GossipType.ALIVE,
+                    new Member(member.getPort(), member.getAddress(), member.getIncarnationNumber()))); // TODO: use clone method
         }
         return gossipList;
     }
@@ -44,7 +46,9 @@ public class Disseminator {
     }
 
     List<Gossip> generateGossip() {
-        return gossipBuffer.getItems(maxGossipPerMessage, memberList.size());
+        List<Gossip> gossipList = gossipBuffer.getItems(maxGossipPerMessage, memberList.size());
+        logger.debug("Sending gossip: {}", gossipList);
+        return gossipList;
     }
 
     void mergeGossip(List<Gossip> gossipList) {
@@ -74,6 +78,7 @@ public class Disseminator {
         Lock mutex = getMutex(m);
         mutex.lock();
         try {
+            if (m.isSuspected()) return;
             Gossip suspect = new Gossip(GossipType.SUSPECT, m);
             mergeItem(suspect);
         } finally {

@@ -77,7 +77,9 @@ class GossipBuffer {
     }
 
     private void expireGossip(Gossip g, int memberListSize) {
-        if (g.getPiggyBackCount() >= log2(memberListSize) - 1) {
+        // TODO: make this a proper parameter
+        int multiplier = 3;
+        if (g.getPiggyBackCount() >= multiplier * Math.max(log2(memberListSize), 1)) {
             g.setExpired();
         }
     }

@@ -3,10 +3,7 @@ package ca.davestibrany.swimjava;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class MemberList {
@@ -44,7 +41,9 @@ public class MemberList {
 
     void updateMemberState(Gossip gossip) {
         if (gossip.getGossipType() == GossipType.JOIN && !members.contains(gossip.getMember())) {
-            members.add(gossip.getMember());
+            members.add(new Member(gossip.getMember().getPort(), gossip.getMember().getAddress(), gossip.getMember().getIncarnationNumber()));
+            // TODO: use clone method
+//            members.add(gossip.getMember());
             logger.info("{} has joined", gossip.getMember());
             return;
         }
@@ -58,15 +57,15 @@ public class MemberList {
 
         switch (gossip.getGossipType()) {
             case ALIVE:
-                logger.info("Marking {} as ALIVE", gossip.getMember());
+                logger.info("{} marking {} as ALIVE", self, gossip.getMember());
                 member.alive();
                 break;
             case SUSPECT:
-                logger.info("Marking {} as SUSPECT", gossip.getMember());
+                logger.info("{} marking {} as SUSPECT", self, gossip.getMember());
                 member.suspect();
                 break;
             case CONFIRM:
-                logger.info("Marking {} as DEAD", gossip.getMember());
+                logger.info("{} marking {} as DEAD", self, gossip.getMember());
                 members.remove(member);
                 break;
         }
