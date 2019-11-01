@@ -3,14 +3,14 @@ package ca.davestibrany.swimjava;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeoutException;
+import java.util.concurrent.*;
 
 public class Listener {
 
     private final Logger logger = LogManager.getLogger();
     private Dispatcher dispatcher;
     private Config conf;
+    private final ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
 
     Listener(Dispatcher dispatcher, Config conf) {
         this.dispatcher = dispatcher;
@@ -37,13 +37,18 @@ public class Listener {
                 logger.info("Received PING-REQ from {} for {}",
                         message.getMember(),
                         message.getIndirectProbeMember());
-                try {
-                    dispatcher.ping(message.getIndirectProbeMember(), conf.getReqTimeout());
-                    dispatcher.ack(message.getMember());
-                    logger.info("Sending ACK to {}", message.getMember());
-                } catch (TimeoutException e) {
-                    logger.info("Timeout waiting for indirect probe to {}", message.getMember());
-                }
+
+                executor.submit(() -> {
+                    try {
+                        dispatcher.ping(message.getIndirectProbeMember(), conf.getReqTimeout());
+                        dispatcher.ack(message.getMember());
+                        logger.info("Sending ACK to {}", message.getMember());
+                    } catch (TimeoutException e) {
+                        logger.info("Timeout waiting for indirect probe to {}", message.getMember());
+                    } catch (InterruptedException | ExecutionException e) {
+                        e.printStackTrace();
+                    }
+                });
                 break;
 
             case ACK:

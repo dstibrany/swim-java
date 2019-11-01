@@ -38,6 +38,7 @@ public class Dispatcher {
             return ack;
         });
 
+        // TODO: fix this for NetTransport
         try {
             f.get(timeout, TimeUnit.MILLISECONDS);
         } catch (TimeoutException e) {

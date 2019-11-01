@@ -46,11 +46,11 @@ public class TestTransport implements Transport {
 
         Queue<Message> queue = getDestinationQueue(message.getMember());
         if (queue != null) {
-            message.serialize(); // only used to increase piggybackcount
+            Message messageCopy = Message.deserialize(message.serialize(), message.getMember());
             if (message.getIndirectProbeMember() != null) {
-                queue.offer(new Message(message.getMessageType(), self, message.getIndirectProbeMember(), message.getGossipList()));
+                queue.offer(new Message(messageCopy.getMessageType(), self, messageCopy.getIndirectProbeMember(), messageCopy.getGossipList()));
             } else {
-                queue.offer(new Message(message.getMessageType(), self, message.getGossipList()));
+                queue.offer(new Message(messageCopy.getMessageType(), self, messageCopy.getGossipList()));
             }
         } else {
             throw new RuntimeException("Queue not found");

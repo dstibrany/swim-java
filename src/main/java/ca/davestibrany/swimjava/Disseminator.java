@@ -114,6 +114,7 @@ public class Disseminator {
     private void handleSuspicionTimers(Gossip gossip) {
         switch (gossip.getGossipType()) {
             case ALIVE:
+            case JOIN:
                 cancelSuspectTimer(gossip.getMember());
                 break;
             case SUSPECT:
@@ -124,15 +125,18 @@ public class Disseminator {
 
     private void startSuspectTimer(Member m) {
         if (suspectTimers.get(m) != null) return;
+
         ScheduledFuture<?> future = executorService.schedule(() -> {
             createConfirmGossip(m);
             suspectTimers.remove(m);
         }, suspicionTimeout, TimeUnit.MILLISECONDS);
+
         suspectTimers.put(m, future);
     }
 
     private void cancelSuspectTimer(Member m) {
         ScheduledFuture<?> future = suspectTimers.get(m);
+
         if (future != null) {
             future.cancel(false);
             suspectTimers.remove(m);

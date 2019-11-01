@@ -1,6 +1,7 @@
 package ca.davestibrany.swimjava;
 
 import com.typesafe.config.ConfigFactory;
+import com.typesafe.config.ConfigList;
 
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -58,6 +59,8 @@ class SimulationNode implements Comparable<SimulationNode> {
         private int joinTime = 1;
         private int failureTime;
         private double dropProbability;
+        private int suspicionTimeout;
+        private int port;
 
         Builder withJoinTime(int joinTime) {
            this.joinTime = joinTime;
@@ -74,16 +77,17 @@ class SimulationNode implements Comparable<SimulationNode> {
             return this;
         }
 
+        Builder withSuspicionTimeout(int suspicionTimeout) {
+            this.suspicionTimeout = suspicionTimeout;
+            return this;
+        }
+
         SimulationNode build(int port, SimulationQueues queues) {
-
-            com.typesafe.config.Config mergedConf = ConfigFactory
-                    .parseString("swim-java.port=" + port)
-                    .withFallback(ConfigFactory.defaultReference());
-
+            this.port = port;
             SimulationNode node = new SimulationNode();
             node.failureTime = this.failureTime;
             node.joinTime = this.joinTime;
-            node.conf = new Config(mergedConf);
+            node.conf = getConfig();
             node.self = node.conf.getSelf();
             node.memberList = new MemberList(node.self);
             node.disseminator = new Disseminator(node.memberList, new GossipBuffer(new ConcurrentHashMap<>()), node.conf);
@@ -97,6 +101,21 @@ class SimulationNode implements Comparable<SimulationNode> {
             node.listener = new Listener(node.dispatcher, node.conf);
 
             return node;
+        }
+
+        private Config getConfig() {
+            com.typesafe.config.Config mergedConf;
+
+            if (suspicionTimeout == 0) {
+                 mergedConf = ConfigFactory
+                        .parseString("swim-java.port=" + port)
+                        .withFallback(ConfigFactory.defaultReference());
+            } else {
+                mergedConf = ConfigFactory
+                        .parseString("swim-java.port=" + port + ", swim-java.suspicion_timeout=" + suspicionTimeout)
+                        .withFallback(ConfigFactory.defaultReference());
+            }
+            return new Config(mergedConf);
         }
 
     }

@@ -32,6 +32,12 @@ class Simulation {
         ExecutorService executorService = Executors.newFixedThreadPool(3);
 
         Future<?> fdFuture = executorService.submit(() -> {
+            // TODO: fix this
+            try {
+                Thread.sleep(3000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
             while (!executorService.isShutdown()) {
                 try {
                     logger.info("Current round: {}", round);
@@ -73,7 +79,7 @@ class Simulation {
                     for (SimulationNode node : nodes) {
                         node.getListener().listenerProtocol();
                     }
-                    Thread.sleep(conf.getProtocolPeriod() / 10);
+                    Thread.sleep(5);
 
                 } catch (Exception e) {
                     e.printStackTrace();
