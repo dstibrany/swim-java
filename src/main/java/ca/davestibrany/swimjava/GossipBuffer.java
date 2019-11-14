@@ -7,9 +7,11 @@ import java.util.stream.Collectors;
 
 class GossipBuffer {
     private final ConcurrentHashMap<Member, Gossip> bufferElements; // TODO: remove old elements
+    private final int expirationMultiplier;
 
-    GossipBuffer(ConcurrentHashMap<Member, Gossip> bufferElements) {
+    GossipBuffer(ConcurrentHashMap<Member, Gossip> bufferElements, int expirationMultiplier) {
         this.bufferElements = bufferElements;
+        this.expirationMultiplier = expirationMultiplier;
     }
 
     List<Gossip> getItems(int n, int memberListSize) {
@@ -77,9 +79,7 @@ class GossipBuffer {
     }
 
     private void expireGossip(Gossip g, int memberListSize) {
-        // TODO: make this a proper parameter
-        int multiplier = 2;
-        if (g.getPiggyBackCount() >= multiplier * Math.max(log2(memberListSize), 1)) {
+        if (g.getPiggyBackCount() >= expirationMultiplier * Math.max(log2(memberListSize), 1)) {
             g.setExpired();
         }
     }

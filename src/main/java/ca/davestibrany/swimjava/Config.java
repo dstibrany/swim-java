@@ -18,6 +18,7 @@ class Config {
     private final int suspicionTimeout;
     private final int joinTimeout;
     private InetAddress address;
+    private final int expirationMultiplier;
 
     Config() {
         this(ConfigFactory.load());
@@ -53,6 +54,7 @@ class Config {
         self = new Member(port, address);
         suspicionTimeout = conf.getInt("swim-java.suspicion_timeout");
         joinTimeout = conf.getInt("swim-java.join_timeout");
+        expirationMultiplier = conf.getInt("swim-java.expiration_multiplier");
     }
 
     int getPort() {
@@ -95,4 +97,7 @@ class Config {
         return joinTimeout;
     }
 
+    int getExpirationMultiplier() {
+        return expirationMultiplier;
+    }
 }

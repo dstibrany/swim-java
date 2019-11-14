@@ -24,7 +24,10 @@ public class SwimJava {
         conf = new Config();
         self = conf.getSelf();
         memberList = new MemberList(self);
-        disseminator = new Disseminator(memberList, new GossipBuffer(new ConcurrentHashMap<>()), conf);
+        disseminator = new Disseminator(
+                memberList,
+                new GossipBuffer(new ConcurrentHashMap<>(), conf.getExpirationMultiplier()),
+                conf);
         dispatcher = new Dispatcher(new NetTransportFactory(), disseminator, conf);
     }
 

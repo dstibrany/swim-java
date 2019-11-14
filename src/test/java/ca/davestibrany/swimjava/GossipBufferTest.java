@@ -15,6 +15,7 @@ class GossipBufferTest {
 
     private GossipBuffer gossipBuffer;
     private ConcurrentHashMap<Member, Gossip> bufferElements;
+    private int expirationMultiplier;
 
     private ConcurrentHashMap<Member, Gossip> buildBuffer() {
         Member m1 = new Member(1234, InetAddress.getLoopbackAddress());
@@ -36,13 +37,14 @@ class GossipBufferTest {
     @BeforeEach
     void setUp() {
         bufferElements = new ConcurrentHashMap<>();
-        gossipBuffer = new GossipBuffer(bufferElements);
+        expirationMultiplier = 2;
+        gossipBuffer = new GossipBuffer(bufferElements, expirationMultiplier);
     }
 
     @Test
     void getItemsReturnsNewList() {
         ConcurrentHashMap<Member, Gossip> buffer = buildBuffer();
-        GossipBuffer gb = new GossipBuffer(buffer);
+        GossipBuffer gb = new GossipBuffer(buffer, expirationMultiplier);
 
         List<Gossip> newList = gb.getItems(buffer.size(), buffer.size());
 
@@ -57,7 +59,7 @@ class GossipBufferTest {
 
     @Test
     void getItemsReturnsCorrectNumberOfItems() {
-        GossipBuffer gb = new GossipBuffer(buildBuffer());
+        GossipBuffer gb = new GossipBuffer(buildBuffer(), expirationMultiplier);
 
         List<Gossip> gossipList1 = gb.getItems(2, 4);
         assertEquals(2, gossipList1.size());
@@ -73,7 +75,7 @@ class GossipBufferTest {
     void getItemsExcludesExpiredGossip() {
         ConcurrentHashMap<Member, Gossip> bufferElements = buildBuffer();
         bufferElements.values().stream().findAny().get().setExpired();
-        GossipBuffer gb = new GossipBuffer(bufferElements);
+        GossipBuffer gb = new GossipBuffer(bufferElements, expirationMultiplier);
 
         List<Gossip> gossipList = gb.getItems(bufferElements.size(), bufferElements.size());
         assertEquals(bufferElements.size() - 1, gossipList.size());
@@ -92,7 +94,7 @@ class GossipBufferTest {
                 gossip.get(i).serialize();
             }
         }
-        GossipBuffer gb = new GossipBuffer(bufferElements);
+        GossipBuffer gb = new GossipBuffer(bufferElements, expirationMultiplier);
 
         List<Gossip> gossipList = gb.getItems(bufferElements.size(), bufferElements.size());
         assertEquals(gossip.get(1), gossipList.get(gossipList.size() - 1));
@@ -102,9 +104,9 @@ class GossipBufferTest {
     @Test
     void getItemsExpiresGossip() {
         ConcurrentHashMap<Member, Gossip> bufferElements = buildBuffer();
-        GossipBuffer gb = new GossipBuffer(bufferElements);
+        GossipBuffer gb = new GossipBuffer(bufferElements, expirationMultiplier);
 
-        for (int i = 0; i < (Math.log(bufferElements.size()) / Math.log(2)); i++) {
+        for (int i = 0; i <= expirationMultiplier * (Math.log(bufferElements.size()) / Math.log(2)); i++) {
             bufferElements.values().forEach(g -> assertFalse(g.isExpired()));
             List<Gossip> items = gb.getItems(bufferElements.size(), bufferElements.size());
             for (Gossip g : items) {
@@ -113,8 +115,7 @@ class GossipBufferTest {
         }
 
         for (Gossip g : bufferElements.values()) {
-            // TODO: fix test
-//            assertTrue(g.isExpired());
+            assertTrue(g.isExpired());
         }
     }
 
@@ -122,7 +123,7 @@ class GossipBufferTest {
     void itemMerged() {
         @SuppressWarnings("unchecked")
         ConcurrentHashMap<Member, Gossip> bufferElements = mock(ConcurrentHashMap.class);
-        GossipBuffer gossipBuffer = new GossipBuffer(bufferElements);
+        GossipBuffer gossipBuffer = new GossipBuffer(bufferElements, expirationMultiplier);
         Member m1 = new Member(5555, InetAddress.getLoopbackAddress());
         Gossip alive = new Gossip(GossipType.ALIVE, m1);
 
@@ -136,7 +137,7 @@ class GossipBufferTest {
     void itemNotMerged() {
         @SuppressWarnings("unchecked")
         ConcurrentHashMap<Member, Gossip> bufferElements = spy(ConcurrentHashMap.class);
-        GossipBuffer gossipBuffer = new GossipBuffer(bufferElements);
+        GossipBuffer gossipBuffer = new GossipBuffer(bufferElements, expirationMultiplier);
         Member m0 = new Member(5555, InetAddress.getLoopbackAddress());
         Member m1 = new Member(5555, InetAddress.getLoopbackAddress(), 1);
         Gossip alive_inc0 = new Gossip(GossipType.ALIVE, m0);
