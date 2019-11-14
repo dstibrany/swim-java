@@ -15,6 +15,7 @@ class SimulationTests {
 
     @Test
     void checkMemberListAfterJoins() throws InterruptedException, ExecutionException {
+        // TODO: name constants
         SimulationQueues simulationQueues = new SimulationQueues();
         SimulationNode node1 = new SimulationNode.Builder()
                 .withJoinTime(1)
@@ -88,7 +89,7 @@ class SimulationTests {
 
     @Test
     void testWithPacketLossAndNoFailures() throws ExecutionException, InterruptedException {
-        double dropProbability = 0.1;
+        double dropProbability = 0.05;
         SimulationQueues simulationQueues = new SimulationQueues();
         SimulationNode node1 = new SimulationNode.Builder()
                 .withJoinTime(1)

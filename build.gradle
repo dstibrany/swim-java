@@ -61,8 +61,6 @@ task integrationTest(type: Test) {
     mustRunAfter test
 }
 
-//check.dependsOn integrationTest
-
 gradle.projectsEvaluated {
     tasks.withType(JavaCompile) {
         options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation"
