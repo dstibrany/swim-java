@@ -30,8 +30,7 @@ public class TestTransport implements Transport {
     public Message receive() {
         BlockingQueue<Message> queue = failureDetectorQueues.get(self);
         try {
-            Message message = queue.take();
-            return shouldDropMessage(message) ? receive() : message;
+            return queue.take();
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             return null;

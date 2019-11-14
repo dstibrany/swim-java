@@ -22,7 +22,7 @@ public class TestTransportListener implements Transport {
     public Message receive() {
         Message message = receiveQueue.poll();
 
-        if (message == null || shouldDropMessage(message)) {
+        if (message == null) {
             // We want poll() to return null if the queue is empty, but we cannot pass a null message to higher layers
             // so we'll just create a new message of type UNKNOWN which will act as a NO-OP.
             return new Message(MessageType.UNKNOWN, null, Collections.emptyList());
@@ -41,12 +41,4 @@ public class TestTransportListener implements Transport {
         throw new UnsupportedOperationException();
     }
 
-    private boolean shouldDropMessage(Message m) {
-        if (m.getMessageType() == MessageType.JOIN || m.getMessageType() == MessageType.JOIN_ACK) return false;
-        if (random.nextDouble() < this.dropProbability) {
-            logger.debug("Dropping message: {}", m.getMessageType());
-            return true;
-        }
-        return false;
-    }
 }

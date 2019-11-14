@@ -90,12 +90,14 @@ class SimulationNode implements Comparable<SimulationNode> {
             node.conf = getConfig();
             node.self = node.conf.getSelf();
             node.memberList = new MemberList(node.self);
-            node.disseminator = new Disseminator(node.memberList, new GossipBuffer(new ConcurrentHashMap<>()), node.conf);
+            node.disseminator = new Disseminator(
+                    node.memberList,
+                    new GossipBuffer(new ConcurrentHashMap<>(), node.conf.getExpirationMultiplier()),
+                    node.conf);
             node.dispatcher = new Dispatcher(
                     new TestTransportFactory(node.self, queues.getListenerQueues(), queues.getFailureDetectorQueues(), dropProbability),
                     node.disseminator,
-                    node.conf
-            );
+                    node.conf);
             node.join = new Join(node.conf.getSeeds(), node.self, node.dispatcher, node.conf.getJoinTimeout());
             node.fd = new FailureDetector(node.memberList, node.dispatcher, node.disseminator, node.conf);
             node.listener = new Listener(node.dispatcher, node.conf);
