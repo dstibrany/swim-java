@@ -52,13 +52,13 @@ void testWithPacketLossAndNoFailures() throws ExecutionException, InterruptedExc
 }
 ``` 
 
-A - We create a 3 node simulation that runs the protocol 30 times for each node.
+A - Creates a 3 node simulation that runs the protocol 30 times for each node.
 
 B - The nodes join the cluster on rounds 1, 3 and 8 respectively.
 
-C - We add a 5% chance that the emulated network will drop a message, allowing us to test the robustness of the protocol.
+C - A 5% chance that the emulated network will drop a message is added, allowing us to test the robustness of the protocol.
  
-D - We end the simulation by ensuring that each member has a complete copy of the list, in spite the of "network jitter" that we introduced.
+D - The simulation ends by ensuring that each member has a complete copy of the list, in spite the of "network jitter" that we introduced.
 
 ## Building
 
