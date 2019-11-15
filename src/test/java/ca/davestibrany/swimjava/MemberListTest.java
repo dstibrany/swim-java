@@ -10,6 +10,8 @@ import java.util.List;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 class MemberListTest {
     Set<Member> members;
@@ -42,6 +44,28 @@ class MemberListTest {
         memberList.updateMemberState(g1);
 
         assertFalse(members.contains(memberToDelete));
+    }
+
+    @Test
+    void updateMemberStateOnAlive() {
+        Member m = mock(Member.class);
+        members.add(m);
+        Gossip g1 = new Gossip(GossipType.ALIVE, m);
+
+        memberList.updateMemberState(g1);
+
+        verify(m).alive();
+    }
+
+    @Test
+    void updateMemberStateOnSuspect() {
+        Member m = mock(Member.class);
+        members.add(m);
+        Gossip g1 = new Gossip(GossipType.SUSPECT, m);
+
+        memberList.updateMemberState(g1);
+
+        verify(m).suspect();
     }
 
     @Test
