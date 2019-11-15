@@ -1,7 +1,7 @@
 # SWIM Protocol 
 
 This is an implementation of the SWIM protocol in Java, which stands for "*S*calable *W*eakly-consistent *I*nfection-style Process Group *M*embership Protocol". 
-See the original paper [here](docs/SWIM.pdf).
+See the [original paper](docs/SWIM.pdf).
 
 A clustered system needs a way to keep track of which of its members are alive and which have failed. One way to do this is through a group membership list, which is a list of the live members in a cluster. A copy of this list is available at each node and is kept
 synchronized in an eventually-consistent manner.
@@ -17,12 +17,15 @@ Here is an example of a simulation:
 
 ```java
 void testWithPacketLossAndNoFailures() throws ExecutionException, InterruptedException {
+    // C
     double dropProbability = 0.05;
     int maxRounds = 30;
     int node1Port = 5555;
     int node2Port = 5556;
     int node3Port = 5557;
     SimulationQueues simulationQueues = new SimulationQueues();
+
+    // B
     SimulationNode node1 = new SimulationNode.Builder()
             .withJoinTime(1)
             .withDropProbability(dropProbability)
@@ -36,23 +39,34 @@ void testWithPacketLossAndNoFailures() throws ExecutionException, InterruptedExc
             .withDropProbability(dropProbability)
             .build(node3Port, simulationQueues);
     List<SimulationNode> nodes = Arrays.asList(node1, node2, node3);
+
+    // A
     Simulation simulation = new Simulation(nodes, maxRounds);
 
     simulation.run();
 
+    // D
     for (SimulationNode node : nodes) {
         assertEquals(nodes.size(), node.getMemberList().size());
     }
 }
 ``` 
 
-This creates a 3 node simulation that runs the protocol 30 times for each node. The nodes join the cluster on rounds 1, 3 and 8 respectively. We add a 5% chance that the emulated network will drop a message, allowing us to test the robustness of the protocol. We end the simulation by ensuring that each member has a complete copy of the list, in spite the of "network jitter" that we introduced.
+A - We create a 3 node simulation that runs the protocol 30 times for each node.
 
-### To build
+B - The nodes join the cluster on rounds 1, 3 and 8 respectively.
+
+C - We add a 5% chance that the emulated network will drop a message, allowing us to test the robustness of the protocol.
+ 
+D - We end the simulation by ensuring that each member has a complete copy of the list, in spite the of "network jitter" that we introduced.
+
+## Building
+
+##### To compile
 `./gradlew build`
 
-### To run unit tests
+##### To run unit tests
 `./gradlew test`
 
-### To run simulations
+##### To run simulations
 `./gradlew integrationTest`
