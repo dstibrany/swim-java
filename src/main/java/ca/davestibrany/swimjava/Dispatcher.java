@@ -27,9 +27,9 @@ public class Dispatcher {
 
     void ping(Member member, int timeout) throws TimeoutException, InterruptedException, ExecutionException {
         Message ping = new Message(MessageType.PING, member, disseminator.generateGossip());
+        Transport t = tf.create();
 
         Future<Message> f = executor.submit(() -> {
-            Transport t = tf.create();
             t.send(ping);
             Message ack = t.receive();
             disseminator.mergeGossip(ack.getGossipList());
@@ -37,11 +37,11 @@ public class Dispatcher {
             return ack;
         });
 
-        // TODO: fix this for NetTransport
         try {
             f.get(timeout, TimeUnit.MILLISECONDS);
         } catch (TimeoutException e) {
             f.cancel(true);
+            t.close();
             throw e;
         }
     }
