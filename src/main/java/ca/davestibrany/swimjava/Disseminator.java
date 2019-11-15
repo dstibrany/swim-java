@@ -32,9 +32,7 @@ public class Disseminator {
     List<Gossip> generateMemberList() {
         List<Gossip> gossipList = new ArrayList<>();
         for (Member member : memberList.getAsList()) {
-            gossipList.add(new Gossip(
-                    GossipType.ALIVE,
-                    new Member(member.getPort(), member.getAddress(), member.getIncarnationNumber()))); // TODO: use clone method
+            gossipList.add(new Gossip(GossipType.ALIVE, member));
         }
         return gossipList;
     }

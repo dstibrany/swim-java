@@ -12,6 +12,7 @@ public class SwimJava {
     private static Dispatcher dispatcher;
     private static Disseminator disseminator;
 
+    // TODO: expose public API
     public static void main(String[] args) {
         init();
         joinCluster();

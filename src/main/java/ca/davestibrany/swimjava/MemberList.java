@@ -41,9 +41,9 @@ public class MemberList {
 
     void updateMemberState(Gossip gossip) {
         if (gossip.getGossipType() == GossipType.JOIN && !members.contains(gossip.getMember())) {
-            members.add(new Member(gossip.getMember().getPort(), gossip.getMember().getAddress(), gossip.getMember().getIncarnationNumber()));
-            // TODO: use clone method
-//            members.add(gossip.getMember());
+//            members.add(new Member(gossip.getMember().getPort(), gossip.getMember().getAddress(), gossip.getMember().getIncarnationNumber()));
+//             TODO: use clone method
+            members.add(gossip.getMember());
             logger.info("{} has joined", gossip.getMember());
             return;
         }
