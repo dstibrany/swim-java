@@ -6,38 +6,25 @@ import org.apache.logging.log4j.Logger;
 import java.util.List;
 import java.util.PriorityQueue;
 import java.util.concurrent.*;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 class Simulation {
     private final int maxRounds;
-    private volatile int round = 1;
+    private int round = 1;
     private List<SimulationNode> nodes;
-    private final Lock roundLock = new ReentrantLock();
-    private final Condition joinCondition = roundLock.newCondition();
     private final PriorityQueue<SimulationNode> joinQueue;
-    private final Config conf;
 
     Simulation(List<SimulationNode> nodes, int maxRounds) {
         this.nodes = new CopyOnWriteArrayList<>();
         this.maxRounds = maxRounds;
         joinQueue = new PriorityQueue<>();
         joinQueue.addAll(nodes);
-        conf = nodes.get(0).getConf();
     }
 
     void run() throws ExecutionException, InterruptedException {
         Logger logger = LogManager.getLogger();
-        ExecutorService executorService = Executors.newFixedThreadPool(3);
+        ExecutorService executorService = Executors.newFixedThreadPool(2);
 
         Future<?> fdFuture = executorService.submit(() -> {
-            // TODO: fix this
-            try {
-                Thread.sleep(3000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
             while (!executorService.isShutdown()) {
                 try {
                     logger.info("Current round: {}", round);
@@ -46,6 +33,13 @@ class Simulation {
                         logger.info("Exiting simulation");
                         executorService.shutdown();
                         break;
+                    }
+
+                    if (!joinQueue.isEmpty() && round == joinQueue.peek().getJoinTime()) {
+                        SimulationNode node = joinQueue.poll();
+                        logger.info("Running Join for {}", node.getSelf());
+                        node.getJoin().start();
+                        nodes.add(node);
                     }
 
                     for (SimulationNode node : nodes) {
@@ -59,13 +53,7 @@ class Simulation {
                         node.getFailureDetector().runProtocol();
                     }
 
-                    roundLock.lock();
-                    try {
-                        round++;
-                        joinCondition.signal();
-                    } finally {
-                        roundLock.unlock();
-                    }
+                    round++;
                 } catch (Exception e) {
                     e.printStackTrace();
                     System.exit(1);
@@ -88,29 +76,6 @@ class Simulation {
             }
         });
 
-        executorService.submit(() -> {
-            try {
-                while (!joinQueue.isEmpty() && !executorService.isShutdown()) {
-                    SimulationNode node = joinQueue.poll();
-                    roundLock.lock();
-                    try {
-                        while (round < node.getJoinTime()) {
-                            joinCondition.await();
-                        }
-                        logger.info("Running Join for {}", node.getSelf());
-                        node.getJoin().start();
-                        nodes.add(node);
-                    } finally {
-                        roundLock.unlock();
-                    }
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-                System.exit(1);
-            }
-        });
-
         fdFuture.get();
     }
-
 }
