@@ -9,9 +9,9 @@ import java.util.concurrent.*;
 
 class Simulation {
     private final int maxRounds;
+    private final PriorityQueue<SimulationNode> joinQueue;
     private int round = 1;
     private List<SimulationNode> nodes;
-    private final PriorityQueue<SimulationNode> joinQueue;
 
     Simulation(List<SimulationNode> nodes, int maxRounds) {
         this.nodes = new CopyOnWriteArrayList<>();

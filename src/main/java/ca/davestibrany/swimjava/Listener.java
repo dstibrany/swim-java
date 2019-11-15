@@ -3,14 +3,17 @@ package ca.davestibrany.swimjava;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.util.concurrent.*;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeoutException;
 
 public class Listener {
 
     private final Logger logger = LogManager.getLogger();
+    private final ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
     private Dispatcher dispatcher;
     private Config conf;
-    private final ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
 
     Listener(Dispatcher dispatcher, Config conf) {
         this.dispatcher = dispatcher;

@@ -17,8 +17,8 @@ class Config {
     private final Member self;
     private final int suspicionTimeout;
     private final int joinTimeout;
-    private InetAddress address;
     private final int expirationMultiplier;
+    private InetAddress address;
 
     Config() {
         this(ConfigFactory.load());

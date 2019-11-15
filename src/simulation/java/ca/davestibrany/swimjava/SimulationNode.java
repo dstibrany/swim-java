@@ -1,11 +1,11 @@
 package ca.davestibrany.swimjava;
 
 import com.typesafe.config.ConfigFactory;
-import com.typesafe.config.ConfigList;
 
 import java.util.concurrent.ConcurrentHashMap;
 
 class SimulationNode implements Comparable<SimulationNode> {
+    volatile boolean alive = true;
     private int joinTime;
     private int failureTime;
     private Config conf;
@@ -16,33 +16,32 @@ class SimulationNode implements Comparable<SimulationNode> {
     private Disseminator disseminator;
     private MemberList memberList;
     private Member self;
-    volatile boolean alive = true;
 
-     int getJoinTime() {
+    int getJoinTime() {
         return joinTime;
     }
 
-     int getFailureTime() {
+    int getFailureTime() {
         return failureTime;
     }
 
-     Member getSelf() {
+    Member getSelf() {
         return self;
     }
 
-     MemberList getMemberList() {
+    MemberList getMemberList() {
         return memberList;
     }
 
-     FailureDetector getFailureDetector() {
+    FailureDetector getFailureDetector() {
         return fd;
     }
 
-     Listener getListener() {
+    Listener getListener() {
         return listener;
     }
 
-     Join getJoin() {
+    Join getJoin() {
         return join;
     }
 
@@ -63,8 +62,8 @@ class SimulationNode implements Comparable<SimulationNode> {
         private int port;
 
         Builder withJoinTime(int joinTime) {
-           this.joinTime = joinTime;
-           return this;
+            this.joinTime = joinTime;
+            return this;
         }
 
         Builder withFailureTime(int failureTime) {
@@ -109,7 +108,7 @@ class SimulationNode implements Comparable<SimulationNode> {
             com.typesafe.config.Config mergedConf;
 
             if (suspicionTimeout == 0) {
-                 mergedConf = ConfigFactory
+                mergedConf = ConfigFactory
                         .parseString("swim-java.port=" + port)
                         .withFallback(ConfigFactory.defaultReference());
             } else {
