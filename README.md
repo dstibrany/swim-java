@@ -1,6 +1,6 @@
 # SWIM Protocol 
 
-This is an implementation of the SWIM protocol in Java, which stands for "*S*calable *W*eakly-consistent *I*nfection-style Process Group *M*embership Protocol". 
+This is an implementation of the SWIM protocol in Java, which stands for "**S**calable **W**eakly-consistent **I**nfection-style Process Group **M**embership Protocol". 
 See the [original paper](docs/SWIM.pdf).
 
 A clustered system needs a way to keep track of which of its members are alive and which have failed. One way to do this is through a group membership list, which is a list of the live members in a cluster. A copy of this list is available at each node and is kept
