@@ -17,7 +17,7 @@ Here is an example of a simulation:
 
 ```java
 void testWithPacketLossAndNoFailures() throws ExecutionException, InterruptedException {
-    // C
+    // A
     double dropProbability = 0.05;
     int maxRounds = 30;
     int node1Port = 5555;
@@ -40,7 +40,7 @@ void testWithPacketLossAndNoFailures() throws ExecutionException, InterruptedExc
             .build(node3Port, simulationQueues);
     List<SimulationNode> nodes = Arrays.asList(node1, node2, node3);
 
-    // A
+    // C
     Simulation simulation = new Simulation(nodes, maxRounds);
 
     simulation.run();
@@ -52,11 +52,11 @@ void testWithPacketLossAndNoFailures() throws ExecutionException, InterruptedExc
 }
 ``` 
 
-A - Creates a 3 node simulation that runs the protocol 30 times for each node.
+A - A 5% chance that the emulated network will drop a message is added, allowing us to test the robustness of the protocol.
 
 B - The nodes join the cluster on rounds 1, 3 and 8 respectively.
 
-C - A 5% chance that the emulated network will drop a message is added, allowing us to test the robustness of the protocol.
+C - Creates a 3 node simulation that runs the protocol 30 times for each node.
  
 D - The simulation ends by ensuring that each member has a complete copy of the list, in spite the of "network jitter" that we introduced.
 
