@@ -11,7 +11,7 @@ in the cluster.
 
 ## Simulation Example
 
-One of the goals of this project was to be able to swap out the UDP network layer with an emulated network layer. This enables the ability to write to run multi-node simulations quickly and in a single JVM process.
+One of the goals of this project was to be able to swap out the UDP network layer with an emulated network layer. This enables the ability to run multi-node simulations quickly and in a single JVM process.
 
 Here is an example of a simulation:
 
