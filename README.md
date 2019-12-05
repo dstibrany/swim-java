@@ -58,7 +58,7 @@ B - The nodes join the cluster on rounds 1, 3 and 8 respectively.
 
 C - Creates a 3 node simulation that runs the protocol 30 times for each node.
  
-D - The simulation ends by ensuring that each member has a complete copy of the list, in spite the of "network jitter" that we introduced.
+D - The simulation ends by ensuring that each member has a complete copy of the list, in spite of the "network jitter" that we introduced.
 
 ## Building
 
