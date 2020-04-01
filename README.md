@@ -17,7 +17,7 @@ Here is an example of a simulation:
 
 ```java
 void testWithPacketLossAndNoFailures() throws ExecutionException, InterruptedException {
-    // A
+    // A 5% chance that the emulated network will drop a message is added, allowing us to test the robustness of the protocol.
     double dropProbability = 0.05;
     int maxRounds = 30;
     int node1Port = 5555;
@@ -25,7 +25,7 @@ void testWithPacketLossAndNoFailures() throws ExecutionException, InterruptedExc
     int node3Port = 5557;
     SimulationQueues simulationQueues = new SimulationQueues();
 
-    // B
+    // The nodes join the cluster on rounds 1, 3 and 8 respectively.
     SimulationNode node1 = new SimulationNode.Builder()
             .withJoinTime(1)
             .withDropProbability(dropProbability)
@@ -40,25 +40,17 @@ void testWithPacketLossAndNoFailures() throws ExecutionException, InterruptedExc
             .build(node3Port, simulationQueues);
     List<SimulationNode> nodes = Arrays.asList(node1, node2, node3);
 
-    // C
+    // Creates a 3 node simulation that runs the protocol 30 times for each node.
     Simulation simulation = new Simulation(nodes, maxRounds);
 
     simulation.run();
 
-    // D
+    // The simulation ends by ensuring that each member has a complete copy of the list, in spite of the "network jitter" that we introduced.
     for (SimulationNode node : nodes) {
         assertEquals(nodes.size(), node.getMemberList().size());
     }
 }
 ``` 
-
-A - A 5% chance that the emulated network will drop a message is added, allowing us to test the robustness of the protocol.
-
-B - The nodes join the cluster on rounds 1, 3 and 8 respectively.
-
-C - Creates a 3 node simulation that runs the protocol 30 times for each node.
- 
-D - The simulation ends by ensuring that each member has a complete copy of the list, in spite of the "network jitter" that we introduced.
 
 ## Building
 
